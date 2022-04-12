@@ -1,0 +1,27 @@
+services:
+  redis:
+    image: redis:alpine
+    expose:
+      - 6379
+    volumes:
+      - redis_data:/data
+
+  server:
+    restart: always
+    build:
+      context: .
+    image: netflix_api_backend_server:latest
+    env_file:
+      - $ENV
+    ports:
+      - "8001:8001"
+    volumes:
+      - .:/app
+    command: >
+      sh -c "cd /app/src
+      && python -m uvicorn main:app --reload --host 0.0.0.0 --port 8001"
+    depends_on:
+      - redis
+
+volumes:
+  redis_data:
