@@ -7,4 +7,3 @@ aioredis==2.0.1
 elasticsearch[async]==7.17.2
 
 uvicorn==0.17.6
-uvloop==0.16.0
