@@ -43,7 +43,7 @@ Sync environment with requirements.*.txt (install missing dependencies, remove r
 make sync-requirements
 ```
 
-Generate requirements.*.txt files (need to re-generate after making changes in requirements.*.in files):
+Generate requirements.\*.txt files (need to re-generate after making changes in requirements.\*.in files):
 ```shell
 make compile-requirements
 ```
