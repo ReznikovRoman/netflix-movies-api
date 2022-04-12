@@ -1,0 +1,20 @@
+name: Auto assign issues to a project
+
+on:
+  issues:
+    types: [opened]
+
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  assign_one_project:
+    runs-on: ubuntu-latest
+    name: Assign to a Project
+    steps:
+    - name: Assign new issues to a project
+      uses: srggrs/assign-one-project-github-action@1.2.1
+      if: github.event.action == 'opened'
+      with:
+        project: ${{ secrets.NETFLIX_GITHUB_PROJECT_URL }}
+        column_name: ${{ secrets.NETFLIX_PROJECT_DEFAULT_COLUMN_NAME }}

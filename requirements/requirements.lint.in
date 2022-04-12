@@ -1,0 +1,11 @@
+-c requirements.txt
+
+isort==5.10.1
+flake8==4.0.1
+flake8-commas==2.1.0
+flake8-docstrings==1.6.0
+flake8-multiline-containers==0.0.18
+flake8-polyfill==1.0.2
+flake8-quotes==3.3.1
+flake8-variables-names==0.0.5
+pep8-naming==0.12.1

@@ -1,0 +1,16 @@
+[flake8]
+max-line-length = 120
+show-source = true
+statistics = true
+inline-quotes="
+extend-exclude =
+    venv*,
+    .git,
+    .*
+ignore =
+    # Line break occurred after a binary operator
+    W504,
+    # Missing docstrings
+    D100,D101,D102,D103,D104,D105,D106,D107,
+    # First line should be in imperative mood
+    D401
