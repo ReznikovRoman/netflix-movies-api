@@ -1,6 +1,10 @@
 # Netflix API
 API for online streaming service _Netflix_.
 
+## Services
+- ETL + Admin panel: https://github.com/ReznikovRoman/yandex-etl
+- Movies API: https://github.com/ReznikovRoman/netflix_movies_api
+
 ## Technologies:
 - FastAPI
 - Elasticsearch
