@@ -1,27 +1,27 @@
 # Netflix API
-API for online streaming service _Netflix_.
+АПИ для онлайн-кинотеатра _Netflix_.
 
-## Services
+## Сервисы
 - ETL + Admin panel: https://github.com/ReznikovRoman/yandex-etl
 - Movies API: https://github.com/ReznikovRoman/netflix_movies_api
 
-## Technologies:
-- FastAPI
-- Elasticsearch
-- Redis
-
-
-## Configuration
-Docker containers:
- 1. redis
+## Конфигурация
+Докер контейнеры:
+ 1. redis-api
  2. api
+ 3. db
+ 4. redis
+ 5. elasticsearch
+ 6. kibana
+ 7. server
+ 8. etl
 
-docker-compose files:
- 1. `docker-compose.yml` - for local development
+Файлы docker-compose:
+ 1. `docker-compose.yml` - для локальной разработки
 
-To run docker containers you have to create a `.env` file in the root directory.
+Для запуска контейнеров нужно создать файл `.env` в корне проекта.
 
-**Example of `.env` file:**
+**Пример `.env`:**
 
 ```dotenv
 ENV=.env
@@ -74,28 +74,28 @@ DB_POSTGRES_BATCH_SIZE=500
 ES_TIMEOUT=3s
 ```
 
-### Start project:
+### Запуск проекта:
 
-Local:
+Локально:
 ```shell
 docker-compose build
 docker-compose up
 ```
 
-## Development
-Sync environment with requirements.*.txt (install missing dependencies, remove redundant ones, update existing).
+## Разработка
+Синхронизировать окружение с `requirements.txt` / `requirements.dev.txt` (установит отсутствующие пакеты, удалит лишние, обновит несоответствующие версии):
 ```shell
 make sync-requirements
 ```
 
-Generate requirements.\*.txt files (need to re-generate after making changes in requirements.\*.in files):
+Сгенерировать requirements.\*.txt files (нужно пере-генерировать после изменений в файлах requirements.\*.in):
 ```shell
 make compile-requirements
 ```
 
-Use `requirements.local.in` for local requirements. You have to specify constraints files (-c ...)
+Используем `requirements.local.in` для пакетов, которые нужно только разработчику. Обязательно нужно указывать _constraints files_ (-c ...)
 
-Example:
+Пример:
 ```shell
 # requirements.local.txt
 
@@ -106,7 +106,7 @@ ipython
 
 ### Code style:
 
-Before pushing a commit run all linters:
+Перед коммитом проверяем, что код соответствует всем требованиям:
 
 ```shell
 make lint
@@ -115,13 +115,13 @@ make lint
 
 ### pre-commit:
 
-To configure pre-commit on your local machine:
+Для настройки pre-commit:
 ```shell
 pre-commit install
 ```
 
-## Documentation
-OpenAPI 3 documentation can be found at:
-- `${PROJECT_BASE_URL}/docs` - Swagger schema
-- `${PROJECT_BASE_URL}/redoc` - ReDoc schema
-- `${PROJECT_BASE_URL}/openapi.json` - OpenAPI json schema
+## Документация
+Документация в формате OpenAPI 3 доступна по адресам:
+- `${PROJECT_BASE_URL}/docs` - Swagger
+- `${PROJECT_BASE_URL}/redoc` - ReDoc
+- `${PROJECT_BASE_URL}/openapi.json` - OpenAPI json
