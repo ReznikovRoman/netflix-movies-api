@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     PROJECT_BASE_URL: str
 
     class Config:
+        env_prefix = "NETFLIX_"
         case_sensitive = True
 
 

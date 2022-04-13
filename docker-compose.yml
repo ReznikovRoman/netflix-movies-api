@@ -1,12 +1,12 @@
 services:
-  redis:
+  redis-api:
     image: redis:alpine
     expose:
-      - 6379
+      - 6380
     volumes:
-      - redis_data:/data
+      - redis_data_api:/data
 
-  server:
+  api:
     restart: always
     build:
       context: .
@@ -23,5 +23,76 @@ services:
     depends_on:
       - redis
 
+  db:
+    image: postgres:14.2-alpine
+    environment:
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_NAME}
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./conf/admin/postgres/scripts:/docker-entrypoint-initdb.d/
+      - postgres_data:/var/lib/postgresql/data/
+
+  redis:
+    image: "redis:alpine"
+    expose:
+      - 6379
+    volumes:
+      - redis_data:/data
+
+  elasticsearch:
+    image: elasticsearch:7.17.2
+    environment:
+      - xpack.security.enabled=false
+      - discovery.type=single-node
+    ports:
+      - "9200:9200"
+    volumes:
+      - es_data:/usr/share/elasticsearch/data
+    depends_on:
+      - redis
+
+  kibana:
+    image: kibana:7.17.2
+    volumes:
+      - kibana_data:/usr/share/kibana/data
+    ports:
+      - "5601:5601"
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    depends_on:
+      - elasticsearch
+
+  server:
+    platform: linux/amd64
+    restart: always
+    image: yandexmiddleteamv1/admin:master
+    env_file:
+      - $ENV
+    ports:
+      - 8000:8000
+    depends_on:
+      - db
+      - redis
+      - elasticsearch
+
+  etl:
+    platform: linux/amd64
+    restart: always
+    image: yandexmiddleteamv1/etl:master
+    env_file:
+      - $ENV
+    depends_on:
+      - db
+      - redis
+      - elasticsearch
+      - kibana
+
 volumes:
+  redis_data_api:
+  postgres_data:
   redis_data:
+  es_data:
+  kibana_data:
