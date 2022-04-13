@@ -55,10 +55,10 @@ jobs:
           pip install -r requirements/requirements.test.txt
       - name: Run tests
         run: |
-          export PROJECT_BASE_URL=http://localhost:8001
-          export API_V1_STR=/api/v1
-          export SERVER_NAME=localhost
-          export SERVER_HOST=http://0.0.0.0:8001
-          export PROJECT_NAME=netflix
-          export DEBUG=0
+          export NETFLIX_PROJECT_BASE_URL=http://localhost:8001
+          export NETFLIX_API_V1_STR=/api/v1
+          export NETFLIX_SERVER_NAME=localhost
+          export NETFLIX_SERVER_HOST=http://0.0.0.0:8001
+          export NETFLIX_PROJECT_NAME=netflix
+          export NETFLIX_DEBUG=0
           make test
