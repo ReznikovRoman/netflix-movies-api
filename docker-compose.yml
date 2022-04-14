@@ -10,7 +10,7 @@ services:
     restart: always
     build:
       context: .
-    image: netflix_api_backend_server:latest
+    image: netflix_api:latest
     env_file:
       - $ENV
     ports:
