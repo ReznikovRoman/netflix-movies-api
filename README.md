@@ -68,10 +68,6 @@ REDIS_DECODE_RESPONSES=1
 # Elasticsearch
 ES_HOST=elasticsearch
 ES_PORT=9200
-
-# ETL
-DB_POSTGRES_BATCH_SIZE=500
-ES_TIMEOUT=3s
 ```
 
 ### Запуск проекта:
