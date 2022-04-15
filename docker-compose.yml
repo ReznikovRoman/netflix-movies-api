@@ -1,16 +1,15 @@
 services:
-  redis-api:
+  redis:
     image: redis:alpine
     expose:
       - 6380
     volumes:
-      - redis_data_api:/data
+      - redis_data:/data
 
-  api:
+  server:
     restart: always
     build:
       context: .
-    image: netflix_api:latest
     env_file:
       - $ENV
     ports:
@@ -23,26 +22,36 @@ services:
     depends_on:
       - redis
 
-  db:
-    image: postgres:14.2-alpine
+  db_admin:
+    image: yandexmiddleteamv1/netflix-admin-db:latest
     environment:
-      - POSTGRES_USER=${DB_USER}
-      - POSTGRES_PASSWORD=${DB_PASSWORD}
-      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${NA_DB_USER}
+      - POSTGRES_PASSWORD=${NA_DB_PASSWORD}
+      - POSTGRES_DB=${NA_DB_NAME}
     ports:
       - "5432:5432"
     volumes:
-      - ./conf/admin/postgres/scripts:/docker-entrypoint-initdb.d/
-      - postgres_data:/var/lib/postgresql/data/
+      - postgres_data_admin:/var/lib/postgresql/data/
 
-  redis:
+  server_admin:
+    platform: linux/amd64
+    restart: always
+    image: yandexmiddleteamv1/netflix-admin:latest
+    env_file:
+      - $ENV
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db_admin
+
+  redis_etl:
     image: "redis:alpine"
     expose:
       - 6379
     volumes:
-      - redis_data:/data
+      - redis_data_etl:/data
 
-  elasticsearch:
+  elasticsearch_etl:
     image: elasticsearch:7.17.2
     environment:
       - xpack.security.enabled=false
@@ -50,49 +59,36 @@ services:
     ports:
       - "9200:9200"
     volumes:
-      - es_data:/usr/share/elasticsearch/data
+      - es_data_etl:/usr/share/elasticsearch/data
     depends_on:
-      - redis
+      - redis_etl
 
-  kibana:
+  kibana_etl:
     image: kibana:7.17.2
     volumes:
-      - kibana_data:/usr/share/kibana/data
+      - kibana_data_etl:/usr/share/kibana/data
     ports:
       - "5601:5601"
     environment:
-      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - ELASTICSEARCH_HOSTS=http://elasticsearch_etl:9200
     depends_on:
-      - elasticsearch
-
-  server:
-    platform: linux/amd64
-    restart: always
-    image: yandexmiddleteamv1/admin:master
-    env_file:
-      - $ENV
-    ports:
-      - 8000:8000
-    depends_on:
-      - db
-      - redis
-      - elasticsearch
+      - elasticsearch_etl
 
   etl:
     platform: linux/amd64
     restart: always
-    image: yandexmiddleteamv1/etl:master
+    image: yandexmiddleteamv1/netflix-etl:latest
     env_file:
       - $ENV
     depends_on:
-      - db
-      - redis
-      - elasticsearch
-      - kibana
+      - db_admin
+      - redis_etl
+      - elasticsearch_etl
+      - kibana_etl
 
 volumes:
-  redis_data_api:
-  postgres_data:
   redis_data:
-  es_data:
-  kibana_data:
+  postgres_data_admin:
+  redis_data_etl:
+  es_data_etl:
+  kibana_data_etl:

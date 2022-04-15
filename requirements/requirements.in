@@ -7,4 +7,6 @@ fastapi==0.75.1
 aioredis==2.0.1
 elasticsearch[async]==7.17.2
 
+gunicorn==20.1.0
 uvicorn==0.17.6
+uvloop==0.16.0
