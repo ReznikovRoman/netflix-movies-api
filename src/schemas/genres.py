@@ -1,14 +1,9 @@
 from uuid import UUID, uuid4
 
-from pydantic import Field
-
-from .base import BaseOrjsonSchema
+from .base import BaseIdOrjsonSchema
 
 
-class Genre(BaseOrjsonSchema):
+class Genre(BaseIdOrjsonSchema):
     """Жанры фильмов."""
 
-    uuid: UUID = Field(default_factory=uuid4)
     name: str
-    # TODO В описании задания "Основные сущности" у жанра есть признак "Популярность", вероятно надо добавить
-    # rating: float

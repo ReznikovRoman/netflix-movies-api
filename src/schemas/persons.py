@@ -1,23 +1,27 @@
 from uuid import UUID, uuid4
 
-from pydantic import Field
-
-from .base import BaseOrjsonSchema
-from .films import MovieList
+from .base import BaseIdOrjsonSchema
+from .films import MovieShortList
 
 
-class PersonDetail(BaseOrjsonSchema):
-    """Детализация участника фильма."""
+class PersonShortDetail(BaseIdOrjsonSchema):
+    """Детализация участника фильма без указания роли."""
 
-    uuid: UUID = Field(default_factory=uuid4)
     full_name: str
-    role: str  # TODO Пока остается открытым вопрос когда в списке фильмов участник под разными ролями
-    film_list: list[MovieList]
+    film_list: list[uuid4]
 
 
-class PersonList(BaseOrjsonSchema):
+class PersonFullDetail(BaseIdOrjsonSchema):
+    """Детализация участника фильма по ролям."""
+
+    full_name: str
+    films_as_director: list[MovieShortList]
+    films_as_actor: list[MovieShortList]
+    films_as_writer: list[MovieShortList]
+
+
+class PersonList(BaseIdOrjsonSchema):
     """Список участников фильмов."""
 
-    uuid: UUID = Field(default_factory=uuid4)
     full_name: str
-    film_list: list[MovieList]
+    film_ids: list[uuid4]
