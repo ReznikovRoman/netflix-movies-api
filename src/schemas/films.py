@@ -20,9 +20,3 @@ class MovieList(BaseIdOrjsonSchema):
 
     title: str
     imdb_rating: float
-
-
-class MovieShortList(BaseIdOrjsonSchema):
-    """Список фильмов, только заголовки."""
-
-    title: str

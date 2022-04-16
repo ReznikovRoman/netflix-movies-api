@@ -1,23 +1,28 @@
 from uuid import uuid4
 
-from .base import BaseIdOrjsonSchema
-from .films import MovieShortList
+from .base import BaseIdOrjsonSchema, BaseOrjsonSchema
+from .films import MovieList
 
 
 class PersonShortDetail(BaseIdOrjsonSchema):
     """Детализация участника фильма без указания роли."""
 
     full_name: str
-    film_list: list[uuid4]
+    film_ids: list[uuid4]
+
+
+class PersonRoleFilmList(BaseOrjsonSchema):
+    """Роль участника с списком фильмов."""
+
+    role: str
+    films: list[MovieList]
 
 
 class PersonFullDetail(BaseIdOrjsonSchema):
     """Детализация участника фильма по ролям."""
 
     full_name: str
-    films_as_director: list[MovieShortList]
-    films_as_actor: list[MovieShortList]
-    films_as_writer: list[MovieShortList]
+    roles: list[PersonRoleFilmList]
 
 
 class PersonList(BaseIdOrjsonSchema):
