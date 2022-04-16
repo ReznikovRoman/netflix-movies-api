@@ -1,3 +1,4 @@
+from enum import Enum
 from uuid import uuid4
 
 from .base import BaseIdOrjsonSchema, BaseOrjsonSchema
@@ -11,10 +12,18 @@ class PersonShortDetail(BaseIdOrjsonSchema):
     film_ids: list[uuid4]
 
 
+class Role(str, Enum):
+    """Роли участников"""
+
+    actor = 'actor'
+    writer = 'writer'
+    director = 'director'
+
+
 class PersonRoleFilmList(BaseOrjsonSchema):
     """Роль участника с списком фильмов."""
 
-    role: str
+    role: Role
     films: list[MovieList]
 
 
