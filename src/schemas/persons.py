@@ -13,11 +13,11 @@ class PersonShortDetail(BaseIdOrjsonSchema):
 
 
 class Role(str, Enum):
-    """Роли участников"""
+    """Роли участников."""
 
-    actor = 'actor'
-    writer = 'writer'
-    director = 'director'
+    actor = "actor"
+    writer = "writer"
+    director = "director"
 
 
 class PersonRoleFilmList(BaseOrjsonSchema):
