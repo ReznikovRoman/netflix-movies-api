@@ -1,9 +1,11 @@
+from datetime import date
 from uuid import UUID, uuid4
+
 from pydantic import Field
+
 from .base import BaseOrjsonSchema
 from .genres import Genre
 from .persons import PersonList
-from datetime import date
 
 
 class MovieDetail(BaseOrjsonSchema):
