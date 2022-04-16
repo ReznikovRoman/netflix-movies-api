@@ -11,11 +11,23 @@ lint:
 	flake8
 	isort -qc .
 
+.PHONY: test
+test:
+	pytest
+
+.PHONY: check
+check: lint test
+
+.PHONY: dt
+dt:
+	docker-compose run --rm server sh -c "make lint"
+
 .PHONY: compile-requirements
 compile-requirements:
 	pip install pip-tools
 	$(PIP_COMPILE) requirements.in
 	$(PIP_COMPILE) requirements.lint.in
+	$(PIP_COMPILE) requirements.test.in
 	$(PIP_COMPILE) requirements.dev.in
 	test -f $(REQUIREMENTS_DIR)/requirements.local.in && $(PIP_COMPILE) requirements.local.in || exit 0
 

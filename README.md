@@ -27,6 +27,11 @@ PYTHONUNBUFFERED=1
 
 # Project
 PROJECT_BASE_URL=http://localhost:8001
+API_V1_STR=/api/v1
+SERVER_NAME=localhost
+SERVER_HOST=http://0.0.0.0:8001
+PROJECT_NAME=netflix
+DEBUG=1
 ```
 
 ### Start project:

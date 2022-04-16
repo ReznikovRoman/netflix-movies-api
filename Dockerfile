@@ -9,11 +9,12 @@ ENV PYTHONPATH /app
 WORKDIR /app
 
 # Install system dependencies
-RUN apk add --no-cache gcc g++ musl-dev rust cargo patchelf python3-dev
+RUN apk add --no-cache make gcc g++ musl-dev rust cargo patchelf python3-dev
 
 # Copy requirements files
 COPY ./requirements/requirements.txt /app/requirements.txt
 COPY ./requirements/requirements.lint.txt /app/requirements.lint.txt
+COPY ./requirements/requirements.test.txt /app/requirements.test.txt
 COPY ./requirements/requirements.dev.txt /app/requirements.dev.txt
 
 # Install project dependencies

@@ -29,3 +29,36 @@ jobs:
           pip install -r requirements/requirements.lint.txt
       - name: Run linters
         run: make lint
+
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.10']
+    services:
+      redis:
+        image: redis
+        ports:
+          - 6379:6379
+        options: --entrypoint redis-server
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements/requirements.txt
+          pip install -r requirements/requirements.test.txt
+      - name: Run tests
+        run: |
+          export PROJECT_BASE_URL=http://localhost:8001
+          export API_V1_STR=/api/v1
+          export SERVER_NAME=localhost
+          export SERVER_HOST=http://0.0.0.0:8001
+          export PROJECT_NAME=netflix
+          export DEBUG=0
+          make test
