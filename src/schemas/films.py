@@ -5,9 +5,10 @@ from .genres import Genre
 from .persons import PersonList
 from datetime import date
 
+
 class MovieDetail(BaseOrjsonSchema):
-    """Детализация фильма"""
-    
+    """Детализация фильма."""
+
     uuid: UUID = Field(default_factory=uuid4)
     title: str
     imdb_rating: float
@@ -22,8 +23,10 @@ class MovieDetail(BaseOrjsonSchema):
     # TODO В скриншоте задания есть так же информация о длине фильма, добавляем? length_in_mins: int
     # TODO Вероятно нам так же нужно тут выводить деление по типу (Фильм/Сериал)
 
+
 class MovieList(BaseOrjsonSchema):
-    """Список фильмов"""
+    """Список фильмов."""
+
     uuid: UUID = Field(default_factory=uuid4)
     title: str
     imdb_rating: float
