@@ -40,3 +40,7 @@ RUN apk add --no-cache libstdc++ build-base
 
 # Copy project files
 COPY . .
+
+# Spin up gunicorn + uvicorn server
+WORKDIR /app/src
+CMD ["python", "-m", "gunicorn", "main:app", "--workers", "4", "--worker-class", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:8001"]

@@ -20,7 +20,7 @@ check: lint test
 
 .PHONY: dt
 dt:
-	docker-compose run --rm server sh -c "make lint"
+	docker-compose run --rm api sh -c "make lint"
 
 .PHONY: compile-requirements
 compile-requirements:
