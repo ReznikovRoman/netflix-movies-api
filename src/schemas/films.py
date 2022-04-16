@@ -1,6 +1,3 @@
-from datetime import date
-from uuid import UUID, uuid4
-
 from .base import BaseIdOrjsonSchema
 from .genres import Genre
 from .persons import PersonList

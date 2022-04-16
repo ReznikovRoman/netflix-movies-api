@@ -18,6 +18,6 @@ class BaseOrjsonSchema(BaseModel):
 
 
 class BaseIdOrjsonSchema(BaseOrjsonSchema):
-    """Базовая схема с uuid"""
+    """Базовая схема с uuid."""
 
     uuid: UUID

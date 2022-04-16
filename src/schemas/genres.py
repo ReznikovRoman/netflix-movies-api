@@ -1,5 +1,3 @@
-from uuid import UUID, uuid4
-
 from .base import BaseIdOrjsonSchema
 
 
