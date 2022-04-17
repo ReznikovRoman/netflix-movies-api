@@ -3,7 +3,7 @@ from .genres import GenreDetail
 from .persons import PersonList
 
 
-class MovieDetail(BaseIdOrjsonSchema):
+class FilmDetail(BaseIdOrjsonSchema):
     """Фильм."""
 
     title: str
@@ -15,7 +15,7 @@ class MovieDetail(BaseIdOrjsonSchema):
     directors: list[PersonList]
 
 
-class MovieList(BaseIdOrjsonSchema):
+class FilmList(BaseIdOrjsonSchema):
     """Список фильмов."""
 
     title: str

@@ -1,7 +1,7 @@
 from enum import Enum
 
 from .base import BaseIdOrjsonSchema, BaseOrjsonSchema
-from .movies import MovieList
+from .films import FilmList
 
 
 class Role(str, Enum):
@@ -16,7 +16,7 @@ class PersonRoleFilmList(BaseOrjsonSchema):
     """Роль персоны со списком фильмов."""
 
     role: Role
-    films: list[MovieList]
+    films: list[FilmList]
 
 
 class PersonFullDetail(BaseIdOrjsonSchema):
