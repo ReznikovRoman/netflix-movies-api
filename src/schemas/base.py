@@ -1,3 +1,5 @@
+from uuid import UUID
+
 import orjson
 from pydantic import BaseModel
 
@@ -12,3 +14,9 @@ class BaseOrjsonSchema(BaseModel):
     class Config:
         json_loads = orjson.loads
         json_dumps = orjson_dumps
+
+
+class BaseIdOrjsonSchema(BaseOrjsonSchema):
+    """Базовая схема с uuid."""
+
+    uuid: UUID
