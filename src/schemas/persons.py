@@ -11,7 +11,6 @@ class PersonShortDetail(BaseIdOrjsonSchema):
 
 
 class PersonList(BaseIdOrjsonSchema):
-    """Список персон (без информации о ролях)."""
+    """Список персон."""
 
     full_name: str
-    film_ids: list[UUID]
