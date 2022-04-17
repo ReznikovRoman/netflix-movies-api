@@ -7,7 +7,7 @@ class FilmDetail(BaseIdOrjsonSchema):
     """Фильм."""
 
     title: str
-    imdb_rating: float
+    imdb_rating: float | None
     description: str
     genre: list[GenreDetail]
     actors: list[PersonList]
@@ -19,4 +19,4 @@ class FilmList(BaseIdOrjsonSchema):
     """Список фильмов."""
 
     title: str
-    imdb_rating: float
+    imdb_rating: float | None
