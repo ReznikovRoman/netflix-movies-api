@@ -1,41 +1,17 @@
-from enum import Enum
-from uuid import uuid4
+from uuid import UUID
 
-from .base import BaseIdOrjsonSchema, BaseOrjsonSchema
-from .films import MovieList
+from .base import BaseIdOrjsonSchema
 
 
 class PersonShortDetail(BaseIdOrjsonSchema):
-    """Детализация участника фильма без указания роли."""
+    """Персона (без информации о ролях)."""
 
     full_name: str
-    film_ids: list[uuid4]
-
-
-class Role(str, Enum):
-    """Роли участников."""
-
-    actor = "actor"
-    writer = "writer"
-    director = "director"
-
-
-class PersonRoleFilmList(BaseOrjsonSchema):
-    """Роль участника с списком фильмов."""
-
-    role: Role
-    films: list[MovieList]
-
-
-class PersonFullDetail(BaseIdOrjsonSchema):
-    """Детализация участника фильма по ролям."""
-
-    full_name: str
-    roles: list[PersonRoleFilmList]
+    film_ids: list[UUID]
 
 
 class PersonList(BaseIdOrjsonSchema):
-    """Список участников фильмов."""
+    """Список персон (без информации о ролях)."""
 
     full_name: str
-    film_ids: list[uuid4]
+    film_ids: list[UUID]

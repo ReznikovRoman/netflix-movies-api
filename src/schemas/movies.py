@@ -1,22 +1,22 @@
 from .base import BaseIdOrjsonSchema
-from .genres import Genre
+from .genres import GenreDetail
 from .persons import PersonList
 
 
 class MovieDetail(BaseIdOrjsonSchema):
-    """Детализация фильма."""
+    """Фильм."""
 
     title: str
     imdb_rating: float
     description: str
-    genre: list[Genre]
+    genre: list[GenreDetail]
     actors: list[PersonList]
     writers: list[PersonList]
     directors: list[PersonList]
 
 
 class MovieList(BaseIdOrjsonSchema):
-    """Список фильмов c рейтингом."""
+    """Список фильмов."""
 
     title: str
     imdb_rating: float

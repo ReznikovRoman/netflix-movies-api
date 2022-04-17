@@ -1,7 +1,7 @@
 from .base import BaseIdOrjsonSchema
 
 
-class Genre(BaseIdOrjsonSchema):
-    """Жанры фильмов."""
+class GenreDetail(BaseIdOrjsonSchema):
+    """Жанр фильма."""
 
     name: str
