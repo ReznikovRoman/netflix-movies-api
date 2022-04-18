@@ -1,8 +1,8 @@
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 
-from common.constants import DEFAULT_PAGE_SIZE
+from api.deps import PageNumberPaginationQueryParams, SortQueryParams
 from common.exceptions import NotFoundError
 from repositories.films import FilmRepository, get_film_repository
 from schemas.films import FilmDetail, FilmList
@@ -13,11 +13,10 @@ router = APIRouter()
 
 @router.get("/", response_model=list[FilmList], summary="Фильмы")
 async def get_films(
-    sort: str | None = None,
-    genre: str | None = None,
-    page_size: int | None = DEFAULT_PAGE_SIZE,
-    page_number: int | None = 0,
     film_repository: FilmRepository = Depends(get_film_repository),
+    sort_params: SortQueryParams = Depends(SortQueryParams),
+    pagination_params: PageNumberPaginationQueryParams = Depends(PageNumberPaginationQueryParams),
+    genre: str | None = Query(default=None, alias="filter[genre]", description="Сортировка по жанрам."),
 ):
     """Получение списка фильмов.
 
@@ -25,17 +24,19 @@ async def get_films(
 
     Пример: `GET /api/v1/films?sort=imdb_rating:desc`.
     """
-    films = await film_repository.get_all_films(page_size=page_size, page_number=page_number, genre=genre, sort=sort)
+    films = await film_repository.get_all_films(
+        page_size=pagination_params.page_size, page_number=pagination_params.page_number, sort=sort_params.sort,
+        genre=genre,
+    )
     return films
 
 
 @router.get("/search", response_model=list[FilmList], summary="Поиск по фильмам")
 async def search_films(
-    query: str,
-    sort: str | None = None,
-    page_size: int | None = DEFAULT_PAGE_SIZE,
-    page_number: int | None = 0,
     film_repository: FilmRepository = Depends(get_film_repository),
+    sort_params: SortQueryParams = Depends(SortQueryParams),
+    pagination_params: PageNumberPaginationQueryParams = Depends(PageNumberPaginationQueryParams),
+    query: str = Query(..., description="Поиск по Фильмам.", required=True),
 ):
     """Поиск по фильмам.
 
@@ -43,7 +44,10 @@ async def search_films(
 
     Пример: `GET /api/v1/films?sort=imdb_rating:desc`.
     """
-    films = await film_repository.search_films(page_size=page_size, page_number=page_number, query=query, sort=sort)
+    films = await film_repository.search_films(
+        page_size=pagination_params.page_size, page_number=pagination_params.page_number, sort=sort_params.sort,
+        query=query,
+    )
     return films
 
 
