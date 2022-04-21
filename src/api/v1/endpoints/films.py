@@ -42,7 +42,7 @@ async def search_films(
 
     Сортировка `sort`: https://www.elastic.co/guide/en/elasticsearch/reference/current/sort-search-results.html.
 
-    Пример: `GET /api/v1/films?sort=imdb_rating:desc`.
+    Пример: `GET /api/v1/films/search?sort=imdb_rating:desc`.
     """
     films = await film_repository.search_films(
         page_size=pagination_params.page_size, page_number=pagination_params.page_number, sort=sort_params.sort,
