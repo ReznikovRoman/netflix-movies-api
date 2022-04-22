@@ -8,6 +8,7 @@ from repositories.persons import PersonRepository, get_person_repository
 from schemas.persons import PersonList, PersonShortDetail
 from schemas.roles import PersonFullDetail
 
+
 router = APIRouter()
 
 
