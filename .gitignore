@@ -15,6 +15,7 @@ venv*/
 *.env
 
 # local configurations and overrides
+drafts/
 requirements.local.*
 
 # Log files
