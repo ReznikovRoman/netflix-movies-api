@@ -74,6 +74,9 @@ class PersonRepository(ElasticSearchRepositoryMixin, ElasticRepositoryMixin):
             search_fields=self.es_person_index_search_fields,
         )
         persons_docs = await self.get_documents_from_elastic(request_body=request_body, sort=sort)
+        print("       persons_docs", persons_docs)
+        for person in persons_docs:
+            person["films_ids"] = self._format_films_list(person["films_ids"])
         return parse_obj_as(list[PersonShortDetail], persons_docs)
 
 
