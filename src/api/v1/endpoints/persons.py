@@ -37,7 +37,7 @@ async def search_persons(
 
     Сортировка `sort`: https://www.elastic.co/guide/en/elasticsearch/reference/current/sort-search-results.html.
 
-    Пример: `GET /api/v1/persons/search?query=John`.
+    Пример: `GET /api/v1/persons/search?sort=-full_name`.
     """
     persons = await person_repository.search_persons(
         page_size=pagination_params.page_size, page_number=pagination_params.page_number, sort=sort_params.sort,

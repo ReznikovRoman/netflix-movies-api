@@ -28,16 +28,16 @@ class PersonRepository(ElasticSearchRepositoryMixin, ElasticRepositoryMixin):
         self.elastic = elastic
 
     @staticmethod
-    def _format_films_list(films_ids):
+    def _format_films_list(films_ids) -> list[UUID]:
         """Format string of films_ids from elastic."""
         return films_ids.replace("{", "").replace("}", "").split(",")
 
     @staticmethod
-    def _get_distinct_film_list(roles_data):
+    def _get_distinct_film_list_objs(roles_data) -> list[FilmList]:
         film_list = []
         for role in roles_data:
             film_list.extend(role["films"])
-        film_list_distinct = list({v["uuid"]: v for v in film_list}.values())
+        film_list_distinct = list({v["uuid"]: FilmList(**v) for v in film_list}.values())
         return film_list_distinct
 
     async def get_person_by_id(self, person_id: UUID) -> PersonShortDetail:
@@ -51,8 +51,8 @@ class PersonRepository(ElasticSearchRepositoryMixin, ElasticRepositoryMixin):
 
     async def get_films_of_person(self, person_id: UUID) -> list[FilmList]:
         person_data = await self.get_document_from_elastic(str(person_id))
-        film_list_distinct = self._get_distinct_film_list(person_data["roles"])
-        return parse_obj_as(list[FilmList], film_list_distinct)
+        list_of_film_list_objs = self._get_distinct_film_list_objs(person_data["roles"])
+        return list_of_film_list_objs
 
     async def get_persons(
         self, page_size: int, page_number: int, query: str | None = None, sort: str | None = None,
@@ -74,7 +74,6 @@ class PersonRepository(ElasticSearchRepositoryMixin, ElasticRepositoryMixin):
             search_fields=self.es_person_index_search_fields,
         )
         persons_docs = await self.get_documents_from_elastic(request_body=request_body, sort=sort)
-        print("       persons_docs", persons_docs)
         for person in persons_docs:
             person["films_ids"] = self._format_films_list(person["films_ids"])
         return parse_obj_as(list[PersonShortDetail], persons_docs)

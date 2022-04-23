@@ -7,7 +7,7 @@ class PersonShortDetail(BaseIdOrjsonSchema):
     """Персона (без информации о ролях)."""
 
     full_name: str
-    films_ids: list[UUID]  # films_ids: list[UUID] i gues we need to change index we got string of ids in index
+    films_ids: list[UUID]
 
 
 class PersonList(BaseIdOrjsonSchema):

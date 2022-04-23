@@ -20,8 +20,12 @@ class SortQueryParams:
 
     def __init__(
         self,
-        sort: str | None = Query(default=None, description="Сортировка по полю."),
+        sort: list[str] | None = Query(default=None, description="Сортировка по полю."),
     ):
-        if sort and sort[0] == "-":
-            sort = sort[1:] + ":desc"
-        self.sort = sort
+        if sort:
+            self.sort = [
+                sort_item[1:] + ":desc" if sort_item[0] == "-" else sort_item
+                for sort_item in sort
+            ]  # changing "-" on ":desc" for elastic
+        else:
+            self.sort = sort
