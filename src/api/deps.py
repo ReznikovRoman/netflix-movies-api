@@ -22,4 +22,6 @@ class SortQueryParams:
         self,
         sort: str | None = Query(default=None, description="Сортировка по полю."),
     ):
+        if sort and sort[0] == "-":
+            sort = sort[1:] + ":desc"
         self.sort = sort
