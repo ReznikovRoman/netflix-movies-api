@@ -2,17 +2,22 @@ from functools import lru_cache
 from typing import ClassVar
 from uuid import UUID
 
+from aioredis import Redis
 from elasticsearch import AsyncElasticsearch
 from pydantic import parse_obj_as
 
 from fastapi import Depends
 
 from db.elastic import get_elastic
+from db.redis import get_redis
 from schemas.films import FilmList
 from schemas.persons import PersonList, PersonShortDetail
 from schemas.roles import PersonFullDetail
 
 from .base import ElasticRepositoryMixin, ElasticSearchRepositoryMixin
+
+
+PERSON_CACHE_EXPIRE_IN_SECONDS = 60 * 5
 
 
 class PersonRepository(ElasticSearchRepositoryMixin, ElasticRepositoryMixin):
@@ -24,23 +29,45 @@ class PersonRepository(ElasticSearchRepositoryMixin, ElasticRepositoryMixin):
         "full_name",
     ]
 
-    def __init__(self, elastic: AsyncElasticsearch):
+    def __init__(self, elastic: AsyncElasticsearch, redis: Redis):
         self.elastic = elastic
+        self.redis = redis
 
-    async def get_person_by_id(self, person_id: UUID) -> PersonShortDetail:
+    async def get_person_from_elastic(self, person_id: UUID) -> PersonShortDetail:
         person_doc = await self.get_document_from_elastic(str(person_id))
         return PersonShortDetail(**person_doc)
 
-    async def get_person_detail_by_id(self, person_id: UUID) -> PersonFullDetail:
+    async def get_person_from_redis(self, person_id: UUID) -> PersonShortDetail:
+        data = await self.redis.get(str(person_id))
+        if not data:
+            return None
+        return PersonShortDetail.parse_raw(data)
+
+    async def put_person_to_redis(self, person_id: UUID, person_json_data):
+        await self.redis.set(str(person_id), person_json_data, ex=PERSON_CACHE_EXPIRE_IN_SECONDS)
+
+    async def get_person_detail_from_elastic(self, person_id: UUID) -> PersonFullDetail:
         person_doc = await self.get_document_from_elastic(str(person_id))
         return PersonFullDetail(**person_doc)
 
-    async def get_person_films(self, person_id: UUID) -> list[FilmList]:
+    async def get_person_detail_from_redis(self, person_id: UUID) -> PersonFullDetail:
+        data = await self.redis.get(str(person_id))
+        if not data:
+            return None
+        return PersonFullDetail.parse_raw(data)
+
+    async def put_person_detail_to_redis(self, person_id: UUID, person_json_data):
+        await self.redis.set(str(person_id), person_json_data, ex=PERSON_CACHE_EXPIRE_IN_SECONDS)
+
+    async def get_person_films_from_elastic(self, person_id: UUID) -> list[FilmList]:
         person_doc = await self.get_document_from_elastic(str(person_id))
         person_films = self._get_distinct_films_from_roles(roles_data=person_doc["roles"])
         return person_films
 
-    async def get_all_persons(self, page_size: int, page_number: int, query: str | None = None) -> list[PersonList]:
+    async def get_all_persons_from_elastic(
+        self, page_size: int,
+        page_number: int, query: str | None = None,
+    ) -> list[PersonList]:
         request_body = self.prepare_search_request(
             page_size=page_size,
             page_number=page_number,
@@ -50,7 +77,7 @@ class PersonRepository(ElasticSearchRepositoryMixin, ElasticRepositoryMixin):
         persons_docs = await self.get_documents_from_elastic(request_body=request_body)
         return parse_obj_as(list[PersonList], persons_docs)
 
-    async def search_persons(self, page_size: int, page_number: int, query: str):
+    async def search_persons_from_elastic(self, page_size: int, page_number: int, query: str):
         request_body = self.prepare_search_request(
             page_size=page_size,
             page_number=page_number,
@@ -79,6 +106,7 @@ class PersonRepository(ElasticSearchRepositoryMixin, ElasticRepositoryMixin):
 
 @lru_cache()
 def get_person_repository(
+        redis: Redis = Depends(get_redis),
         elastic: AsyncElasticsearch = Depends(get_elastic),
 ) -> PersonRepository:
-    return PersonRepository(elastic)
+    return PersonRepository(elastic, redis)

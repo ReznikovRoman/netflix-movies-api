@@ -4,8 +4,8 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from api.deps import PageNumberPaginationQueryParams, SortQueryParams
 from common.exceptions import NotFoundError
-from repositories.films import FilmRepository, get_film_repository
 from schemas.films import FilmDetail, FilmList
+from services.films import FilmService, get_film_service
 
 
 router = APIRouter()
@@ -13,7 +13,7 @@ router = APIRouter()
 
 @router.get("/", response_model=list[FilmList], summary="Фильмы")
 async def get_films(
-    film_repository: FilmRepository = Depends(get_film_repository),
+    film_service: FilmService = Depends(get_film_service),
     sort_params: SortQueryParams = Depends(SortQueryParams),
     pagination_params: PageNumberPaginationQueryParams = Depends(PageNumberPaginationQueryParams),
     genre: str | None = Query(default=None, alias="filter[genre]", description="Сортировка по жанрам."),
@@ -24,7 +24,7 @@ async def get_films(
 
     Пример: `GET /api/v1/films?sort=-imdb_rating`.
     """
-    films = await film_repository.get_all_films(
+    films = await film_service.get_all_films(
         page_size=pagination_params.page_size, page_number=pagination_params.page_number, sort=sort_params.sort,
         genre=genre,
     )
@@ -33,7 +33,7 @@ async def get_films(
 
 @router.get("/search", response_model=list[FilmList], summary="Поиск по фильмам")
 async def search_films(
-    film_repository: FilmRepository = Depends(get_film_repository),
+    film_service: FilmService = Depends(get_film_service),
     sort_params: SortQueryParams = Depends(SortQueryParams),
     pagination_params: PageNumberPaginationQueryParams = Depends(PageNumberPaginationQueryParams),
     query: str = Query(..., description="Поиск по Фильмам.", required=True),
@@ -44,7 +44,7 @@ async def search_films(
 
     Пример: `GET /api/v1/films/search?sort=-imdb_rating`.
     """
-    films = await film_repository.search_films(
+    films = await film_service.search_films(
         page_size=pagination_params.page_size, page_number=pagination_params.page_number, sort=sort_params.sort,
         query=query,
     )
@@ -52,10 +52,10 @@ async def search_films(
 
 
 @router.get("/{uuid}", response_model=FilmDetail, summary="Фильм")
-async def get_film(uuid: UUID, film_repository: FilmRepository = Depends(get_film_repository)):
+async def get_film(uuid: UUID, film_service: FilmService = Depends(get_film_service)):
     """Получение фильма по `uuid`."""
     try:
-        film = await film_repository.get_film_by_id(uuid)
+        film = await film_service.get_film_by_id(uuid)
     except NotFoundError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="film not found")
 
