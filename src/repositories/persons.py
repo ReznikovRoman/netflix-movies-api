@@ -40,26 +40,24 @@ class PersonRepository(ElasticSearchRepositoryMixin, ElasticRepositoryMixin):
         person_films = self._get_distinct_films_from_roles(roles_data=person_doc["roles"])
         return person_films
 
-    async def get_all_persons(
-        self, page_size: int, page_number: int, query: str | None = None, sort: str | None = None,
-    ) -> list[PersonList]:
+    async def get_all_persons(self, page_size: int, page_number: int, query: str | None = None) -> list[PersonList]:
         request_body = self.prepare_search_request(
             page_size=page_size,
             page_number=page_number,
             search_query=query,
             search_fields=self.es_person_index_search_fields,
         )
-        persons_docs = await self.get_documents_from_elastic(request_body=request_body, sort=sort)
+        persons_docs = await self.get_documents_from_elastic(request_body=request_body)
         return parse_obj_as(list[PersonList], persons_docs)
 
-    async def search_persons(self, page_size: int, page_number: int, query: str, sort: str | None = None):
+    async def search_persons(self, page_size: int, page_number: int, query: str):
         request_body = self.prepare_search_request(
             page_size=page_size,
             page_number=page_number,
             search_query=query,
             search_fields=self.es_person_index_search_fields,
         )
-        persons_docs = await self.get_documents_from_elastic(request_body=request_body, sort=sort)
+        persons_docs = await self.get_documents_from_elastic(request_body=request_body)
         return parse_obj_as(list[PersonShortDetail], persons_docs)
 
     @staticmethod
