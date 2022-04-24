@@ -16,7 +16,7 @@ from .base import ElasticRepositoryMixin, ElasticSearchRepositoryMixin
 
 
 class PersonRepository(ElasticSearchRepositoryMixin, ElasticRepositoryMixin):
-    """Репозиторий для работы с персонами."""
+    """Репозиторий для работы с данными Персон."""
 
     es_index_name: ClassVar[str] = "person"
 
@@ -27,34 +27,20 @@ class PersonRepository(ElasticSearchRepositoryMixin, ElasticRepositoryMixin):
     def __init__(self, elastic: AsyncElasticsearch):
         self.elastic = elastic
 
-    @staticmethod
-    def _format_films_list(films_ids) -> list[UUID]:
-        """Format string of films_ids from elastic."""
-        return films_ids.replace("{", "").replace("}", "").split(",")
-
-    @staticmethod
-    def _get_distinct_film_list_objs(roles_data) -> list[FilmList]:
-        film_list = []
-        for role in roles_data:
-            film_list.extend(role["films"])
-        film_list_distinct = list({v["uuid"]: FilmList(**v) for v in film_list}.values())
-        return film_list_distinct
-
     async def get_person_by_id(self, person_id: UUID) -> PersonShortDetail:
         person_doc = await self.get_document_from_elastic(str(person_id))
-        person_doc["films_ids"] = self._format_films_list(person_doc["films_ids"])
         return PersonShortDetail(**person_doc)
 
     async def get_person_detail_by_id(self, person_id: UUID) -> PersonFullDetail:
         person_doc = await self.get_document_from_elastic(str(person_id))
         return PersonFullDetail(**person_doc)
 
-    async def get_films_of_person(self, person_id: UUID) -> list[FilmList]:
-        person_data = await self.get_document_from_elastic(str(person_id))
-        list_of_film_list_objs = self._get_distinct_film_list_objs(person_data["roles"])
-        return list_of_film_list_objs
+    async def get_person_films(self, person_id: UUID) -> list[FilmList]:
+        person_doc = await self.get_document_from_elastic(str(person_id))
+        person_films = self._get_distinct_films_from_roles(roles_data=person_doc["roles"])
+        return person_films
 
-    async def get_persons(
+    async def get_all_persons(
         self, page_size: int, page_number: int, query: str | None = None, sort: str | None = None,
     ) -> list[PersonList]:
         request_body = self.prepare_search_request(
@@ -74,9 +60,23 @@ class PersonRepository(ElasticSearchRepositoryMixin, ElasticRepositoryMixin):
             search_fields=self.es_person_index_search_fields,
         )
         persons_docs = await self.get_documents_from_elastic(request_body=request_body, sort=sort)
-        for person in persons_docs:
-            person["films_ids"] = self._format_films_list(person["films_ids"])
         return parse_obj_as(list[PersonShortDetail], persons_docs)
+
+    @staticmethod
+    def _get_distinct_films_from_roles(roles_data: dict) -> list[FilmList]:
+        """Получение уникальных фильмов из данных по ролям `roles_data`.
+
+        Одна персона может участвовать в фильме и в качестве актера, и в качестве режиссера.
+        Поэтому нужно обрабатывать данные по ролям и возвращать только уникальные фильмы.
+        """
+        films: list[dict] = []
+        for role_data in roles_data:
+            films.extend(role_data["films"])
+        distinct_films: dict[str, FilmList] = {
+            film["uuid"]: FilmList(**film)
+            for film in films
+        }
+        return list(distinct_films.values())
 
 
 @lru_cache()

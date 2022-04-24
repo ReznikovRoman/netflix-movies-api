@@ -20,7 +20,7 @@ async def get_persons(
     pagination_params: PageNumberPaginationQueryParams = Depends(PageNumberPaginationQueryParams),
 ):
     """Получения списка персон (с возможной фильтрацией, пагинацией и сортировкой)."""
-    persons = await person_repository.get_persons(
+    persons = await person_repository.get_all_persons(
         page_size=pagination_params.page_size, page_number=pagination_params.page_number, sort=sort_params.sort,
     )
     return persons
@@ -70,7 +70,7 @@ async def get_person_full(uuid: UUID, person_repository: PersonRepository = Depe
 @router.get("/{uuid}/films", response_model=list[FilmList], summary="Фильмы Персоны")
 async def get_person_films(uuid: UUID, person_repository: PersonRepository = Depends(get_person_repository)):
     try:
-        film_list = await person_repository.get_films_of_person(uuid)
+        film_list = await person_repository.get_person_films(uuid)
     except NotFoundError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="person not found")
     return film_list
