@@ -14,7 +14,7 @@ from .base import ElasticRepositoryMixin, ElasticSearchRepositoryMixin
 
 
 class FilmRepository(ElasticSearchRepositoryMixin, ElasticRepositoryMixin):
-    """Репозиторий для работы с фильмами."""
+    """Репозиторий для работы с данными Фильмов."""
 
     es_index_name: ClassVar[str] = "movies"
 
