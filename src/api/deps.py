@@ -1,3 +1,5 @@
+from typing import ClassVar
+
 from fastapi import Query
 
 from common.constants import DEFAULT_PAGE_SIZE
@@ -18,14 +20,27 @@ class PageNumberPaginationQueryParams:
 class SortQueryParams:
     """Стандартные query параметры для запроса с сортировкой."""
 
+    API_DESCENDING_CHAR: ClassVar[str] = "-"
+    ELASTIC_DESCENDING_CHAR: ClassVar[str] = ":desc"
+
     def __init__(
         self,
         sort: list[str] | None = Query(default=None, description="Сортировка по полю."),
     ):
-        if sort:
-            self.sort = [
-                sort_item[1:] + ":desc" if sort_item[0] == "-" else sort_item
-                for sort_item in sort
-            ]  # changing "-" on ":desc" for elastic
-        else:
-            self.sort = sort
+        self.sort = None
+
+        if sort is not None:
+            self.sort = self._format_sort_params(sort)
+
+    @staticmethod
+    def _format_sort_params(sort_params: list[str]) -> list[str]:
+        formatted_params = map(SortQueryParams._format_sort_param, sort_params)
+        return list(formatted_params)
+
+    @staticmethod
+    def _format_sort_param(sort_param: str) -> str:
+        formatted_param = sort_param
+        if sort_param.startswith(SortQueryParams.API_DESCENDING_CHAR):
+            sort_param = sort_param.removeprefix(SortQueryParams.API_DESCENDING_CHAR)
+            formatted_param = f"{sort_param}{SortQueryParams.ELASTIC_DESCENDING_CHAR}"
+        return formatted_param
