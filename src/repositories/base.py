@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import base64
+import hashlib
 from typing import TYPE_CHECKING, ClassVar
 
 from elasticsearch.exceptions import NotFoundError as ElasticNotFoundError
@@ -82,3 +84,14 @@ class ElasticSearchRepositoryMixin:
             return 0
         offset = (page_size * page_number) - page_size
         return offset
+
+
+class RedisRepositoryMixin:
+    """Mixin for redis manipulations."""
+
+    @staticmethod
+    def get_hash(url: str, length: int = 256) -> str:
+        url_hash = hashlib.sha256(url.encode())
+        hash_str = base64.urlsafe_b64encode(url_hash.digest()).decode("ascii")
+
+        return hash_str[:length]

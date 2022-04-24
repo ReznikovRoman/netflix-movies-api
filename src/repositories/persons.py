@@ -1,3 +1,4 @@
+import json
 from functools import lru_cache
 from typing import ClassVar
 from uuid import UUID
@@ -14,13 +15,13 @@ from schemas.films import FilmList
 from schemas.persons import PersonList, PersonShortDetail
 from schemas.roles import PersonFullDetail
 
-from .base import ElasticRepositoryMixin, ElasticSearchRepositoryMixin
+from .base import ElasticRepositoryMixin, ElasticSearchRepositoryMixin, RedisRepositoryMixin
 
 
 PERSON_CACHE_EXPIRE_IN_SECONDS = 60 * 5
 
 
-class PersonRepository(ElasticSearchRepositoryMixin, ElasticRepositoryMixin):
+class PersonRepository(ElasticSearchRepositoryMixin, ElasticRepositoryMixin, RedisRepositoryMixin):
     """Репозиторий для работы с данными Персон."""
 
     es_index_name: ClassVar[str] = "person"
@@ -64,6 +65,16 @@ class PersonRepository(ElasticSearchRepositoryMixin, ElasticRepositoryMixin):
         person_films = self._get_distinct_films_from_roles(roles_data=person_doc["roles"])
         return person_films
 
+    async def get_person_films_from_redis(self, string_for_hash):
+        data = await self.redis.get(self.get_hash(string_for_hash))
+        if not data:
+            return None
+        return [FilmList.parse_raw(film) for film in json.loads(data)]
+
+    async def put_person_films_to_redis(self, string_for_hash, person_films):
+        json_str = json.dumps([film.json() for film in person_films])
+        await self.redis.set(self.get_hash(string_for_hash), json_str, ex=PERSON_CACHE_EXPIRE_IN_SECONDS)
+
     async def get_all_persons_from_elastic(
         self, page_size: int,
         page_number: int, query: str | None = None,
@@ -77,6 +88,16 @@ class PersonRepository(ElasticSearchRepositoryMixin, ElasticRepositoryMixin):
         persons_docs = await self.get_documents_from_elastic(request_body=request_body)
         return parse_obj_as(list[PersonList], persons_docs)
 
+    async def get_all_persons_from_redis(self, string_for_hash):
+        data = await self.redis.get(self.get_hash(string_for_hash))
+        if not data:
+            return None
+        return [PersonList.parse_raw(person) for person in json.loads(data)]
+
+    async def put_all_persons_to_redis(self, string_for_hash, persons):
+        json_str = json.dumps([person.json() for person in persons])
+        await self.redis.set(self.get_hash(string_for_hash), json_str, ex=PERSON_CACHE_EXPIRE_IN_SECONDS)
+
     async def search_persons_from_elastic(self, page_size: int, page_number: int, query: str):
         request_body = self.prepare_search_request(
             page_size=page_size,
@@ -86,6 +107,16 @@ class PersonRepository(ElasticSearchRepositoryMixin, ElasticRepositoryMixin):
         )
         persons_docs = await self.get_documents_from_elastic(request_body=request_body)
         return parse_obj_as(list[PersonShortDetail], persons_docs)
+
+    async def search_persons_from_redis(self, string_for_hash):
+        data = await self.redis.get(self.get_hash(string_for_hash))
+        if not data:
+            return None
+        return [PersonShortDetail.parse_raw(person) for person in json.loads(data)]
+
+    async def put_search_persons_to_redis(self, string_for_hash, persons):
+        json_str = json.dumps([person.json() for person in persons])
+        await self.redis.set(self.get_hash(string_for_hash), json_str, ex=PERSON_CACHE_EXPIRE_IN_SECONDS)
 
     @staticmethod
     def _get_distinct_films_from_roles(roles_data: dict) -> list[FilmList]:

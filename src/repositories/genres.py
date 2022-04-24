@@ -28,19 +28,16 @@ class GenreRepository(ElasticRepositoryMixin):
         self.redis = redis
 
     async def get_genre_from_elastic(self, genre_id: UUID) -> GenreDetail:
-        print("el")
         genre_doc = await self.get_document_from_elastic(str(genre_id))
         return GenreDetail(**genre_doc)
 
     async def get_genre_from_redis(self, genre_id: UUID) -> GenreDetail:
-        print("re")
         data = await self.redis.get(str(genre_id))
         if not data:
             return None
         return GenreDetail.parse_raw(data)
 
     async def put_genre_to_redis(self, genre_id: UUID, genre_json_data):
-        print("pu")
         await self.redis.set(str(genre_id), genre_json_data, ex=GENRE_CACHE_EXPIRE_IN_SECONDS)
 
     async def get_all_genres_from_elastic(self) -> list[GenreDetail]:
