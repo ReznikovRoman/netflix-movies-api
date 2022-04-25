@@ -4,6 +4,7 @@ import base64
 import hashlib
 from typing import TYPE_CHECKING, ClassVar
 
+import orjson
 from elasticsearch.exceptions import NotFoundError as ElasticNotFoundError
 
 from common.exceptions import NotFoundError
@@ -91,6 +92,28 @@ class RedisRepositoryMixin:
     """Миксин для работы с Redis."""
 
     redis: Redis
+
+    redis_ttl: ClassVar[int]
+
+    async def get_items_from_redis(self, key: str, schema) -> list | None:
+        items = await self.redis.get(key)
+        if items is None:
+            return None
+        return [schema.parse_raw(item) for item in orjson.loads(items)]
+
+    async def get_item_from_redis(self, key: str, schema) -> int | None:  # TODO: change types
+        item = await self.redis.get(str(key))
+        if not item:
+            return None
+        return schema.parse_raw(item)
+
+    async def put_item_to_redis(self, key: str, item) -> None:
+        serialized_item = orjson.dumps(item.json())
+        await self.redis.setex(key, self.redis_ttl, serialized_item)
+
+    async def put_items_to_redis(self, key: str, items) -> None:
+        serialized_items = orjson.dumps([item.json() for item in items])
+        await self.redis.setex(key, self.redis_ttl, serialized_items)
 
     async def find_collision_free_key(
         self, key_to_hash: str, *, min_length: int, prefix: str | None = None, suffix: str = None,
