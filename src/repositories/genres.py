@@ -33,10 +33,10 @@ class GenreRepository(ElasticRepositoryMixin, RedisRepositoryMixin):
         return GenreDetail(**genre_doc)
 
     async def get_genre_from_redis(self, genre_id: UUID) -> GenreDetail:
-        data = await self.redis.get(str(genre_id))
-        if not data:
+        genre = await self.redis.get(str(genre_id))
+        if not genre:
             return None
-        return GenreDetail.parse_raw(data)
+        return GenreDetail.parse_raw(genre)
 
     async def put_genre_to_redis(self, genre_id: UUID, genre_json_data):
         await self.redis.set(str(genre_id), genre_json_data, ex=GENRE_CACHE_EXPIRE_IN_SECONDS)
@@ -46,14 +46,14 @@ class GenreRepository(ElasticRepositoryMixin, RedisRepositoryMixin):
         return parse_obj_as(list[GenreDetail], genres_docs)
 
     async def get_all_genres_from_redis(self, string_for_hash) -> list[GenreDetail]:
-        data = await self.redis.get(self.get_hash(string_for_hash))
-        if not data:
+        genres = await self.redis.get(self.get_hash(string_for_hash))
+        if not genres:
             return None
-        return [GenreDetail.parse_raw(genre) for genre in json.loads(data)]
+        return [GenreDetail.parse_raw(genre) for genre in json.loads(genres)]
 
     async def put_all_genres_to_redis(self, genres, string_for_hash):
-        genres_json_data = json.dumps([genre.json() for genre in genres])
-        await self.redis.set(self.get_hash(string_for_hash), genres_json_data, ex=GENRE_CACHE_EXPIRE_IN_SECONDS)
+        genres_json_str = json.dumps([genre.json() for genre in genres])
+        await self.redis.set(self.get_hash(string_for_hash), genres_json_str, ex=GENRE_CACHE_EXPIRE_IN_SECONDS)
 
 
 @lru_cache()

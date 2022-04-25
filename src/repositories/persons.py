@@ -89,10 +89,10 @@ class PersonRepository(ElasticSearchRepositoryMixin, ElasticRepositoryMixin, Red
         return parse_obj_as(list[PersonList], persons_docs)
 
     async def get_all_persons_from_redis(self, string_for_hash):
-        data = await self.redis.get(self.get_hash(string_for_hash))
-        if not data:
+        persons = await self.redis.get(self.get_hash(string_for_hash))
+        if not persons:
             return None
-        return [PersonList.parse_raw(person) for person in json.loads(data)]
+        return [PersonList.parse_raw(person) for person in json.loads(persons)]
 
     async def put_all_persons_to_redis(self, string_for_hash, persons):
         json_str = json.dumps([person.json() for person in persons])
@@ -109,14 +109,14 @@ class PersonRepository(ElasticSearchRepositoryMixin, ElasticRepositoryMixin, Red
         return parse_obj_as(list[PersonShortDetail], persons_docs)
 
     async def search_persons_from_redis(self, string_for_hash):
-        data = await self.redis.get(self.get_hash(string_for_hash))
-        if not data:
+        persons = await self.redis.get(self.get_hash(string_for_hash))
+        if not persons:
             return None
-        return [PersonShortDetail.parse_raw(person) for person in json.loads(data)]
+        return [PersonShortDetail.parse_raw(person) for person in json.loads(persons)]
 
     async def put_search_persons_to_redis(self, string_for_hash, persons):
-        json_str = json.dumps([person.json() for person in persons])
-        await self.redis.set(self.get_hash(string_for_hash), json_str, ex=PERSON_CACHE_EXPIRE_IN_SECONDS)
+        persons_json_str = json.dumps([person.json() for person in persons])
+        await self.redis.set(self.get_hash(string_for_hash), persons_json_str, ex=PERSON_CACHE_EXPIRE_IN_SECONDS)
 
     @staticmethod
     def _get_distinct_films_from_roles(roles_data: dict) -> list[FilmList]:
