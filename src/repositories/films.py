@@ -2,7 +2,6 @@ from functools import lru_cache
 from typing import ClassVar
 from uuid import UUID
 
-import orjson
 from aioredis import Redis
 from elasticsearch import AsyncElasticsearch
 from pydantic import parse_obj_as
