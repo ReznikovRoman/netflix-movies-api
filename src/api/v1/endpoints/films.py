@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 
 from api.deps import PageNumberPaginationQueryParams, SortQueryParams
 from common.exceptions import NotFoundError
@@ -13,6 +13,7 @@ router = APIRouter()
 
 @router.get("/", response_model=list[FilmList], summary="Фильмы")
 async def get_films(
+    request: Request,
     film_service: FilmService = Depends(get_film_service),
     sort_params: SortQueryParams = Depends(SortQueryParams),
     pagination_params: PageNumberPaginationQueryParams = Depends(PageNumberPaginationQueryParams),
@@ -25,6 +26,7 @@ async def get_films(
     Пример: `GET /api/v1/films?sort=-imdb_rating`.
     """
     films = await film_service.get_all_films(
+        request_params=request.url.query,
         page_size=pagination_params.page_size, page_number=pagination_params.page_number, sort=sort_params.sort,
         genre=genre,
     )
@@ -33,6 +35,7 @@ async def get_films(
 
 @router.get("/search", response_model=list[FilmList], summary="Поиск по фильмам")
 async def search_films(
+    request: Request,
     film_service: FilmService = Depends(get_film_service),
     sort_params: SortQueryParams = Depends(SortQueryParams),
     pagination_params: PageNumberPaginationQueryParams = Depends(PageNumberPaginationQueryParams),
@@ -45,6 +48,7 @@ async def search_films(
     Пример: `GET /api/v1/films/search?sort=-imdb_rating`.
     """
     films = await film_service.search_films(
+        request_params=request.url.query,
         page_size=pagination_params.page_size, page_number=pagination_params.page_number, sort=sort_params.sort,
         query=query,
     )

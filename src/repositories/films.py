@@ -1,8 +1,8 @@
-import json
 from functools import lru_cache
 from typing import ClassVar
 from uuid import UUID
 
+import orjson
 from aioredis import Redis
 from elasticsearch import AsyncElasticsearch
 from pydantic import parse_obj_as
@@ -14,9 +14,6 @@ from db.redis import get_redis
 from schemas.films import FilmDetail, FilmList
 
 from .base import ElasticRepositoryMixin, ElasticSearchRepositoryMixin, RedisRepositoryMixin
-
-
-FILM_CACHE_EXPIRE_IN_SECONDS = 60 * 5
 
 
 class FilmRepository(ElasticSearchRepositoryMixin, ElasticRepositoryMixin, RedisRepositoryMixin):
@@ -34,6 +31,9 @@ class FilmRepository(ElasticSearchRepositoryMixin, ElasticRepositoryMixin, Redis
     ]
     es_film_genre_search_field: ClassVar[list[str]] = ["genres_names"]
 
+    film_cache_ttl: ClassVar[int] = 5 * 60  # 5 минут
+    hashed_params_key_length: ClassVar[int] = 10
+
     def __init__(self, elastic: AsyncElasticsearch, redis: Redis):
         self.elastic = elastic
         self.redis = redis
@@ -41,15 +41,6 @@ class FilmRepository(ElasticSearchRepositoryMixin, ElasticRepositoryMixin, Redis
     async def get_film_from_elastic(self, film_id: UUID) -> FilmDetail:
         film_doc = await self.get_document_from_elastic(str(film_id))
         return FilmDetail(**film_doc)
-
-    async def get_film_from_redis(self, film_id: UUID) -> FilmDetail:
-        film = await self.redis.get(str(film_id))
-        if not film:
-            return None
-        return FilmDetail.parse_raw(film)
-
-    async def put_film_to_redis(self, film_id: UUID, film_json_data):
-        await self.redis.set(str(film_id), film_json_data, ex=FILM_CACHE_EXPIRE_IN_SECONDS)
 
     async def get_all_films_from_elastic(
         self, page_size: int, page_number: int, genre: str | None = None, sort: str | None = None,
@@ -63,16 +54,6 @@ class FilmRepository(ElasticSearchRepositoryMixin, ElasticRepositoryMixin, Redis
         films_docs = await self.get_documents_from_elastic(request_body=request_body, sort=sort)
         return parse_obj_as(list[FilmList], films_docs)
 
-    async def get_all_films_from_redis(self, string_for_hash):
-        films = await self.redis.get(self.get_hash(string_for_hash))
-        if not films:
-            return None
-        return [FilmList.parse_raw(film) for film in json.loads(films)]
-
-    async def put_all_films_to_redis(self, films, string_for_hash):
-        json_str = json.dumps([film.json() for film in films])
-        await self.redis.set(self.get_hash(string_for_hash), json_str, ex=FILM_CACHE_EXPIRE_IN_SECONDS)
-
     async def search_films_from_elastic(
         self, page_size: int, page_number: int, query: str, sort: str | None = None,
     ) -> list[FilmList]:
@@ -85,15 +66,39 @@ class FilmRepository(ElasticSearchRepositoryMixin, ElasticRepositoryMixin, Redis
         films_docs = await self.get_documents_from_elastic(request_body=request_body, sort=sort)
         return parse_obj_as(list[FilmList], films_docs)
 
-    async def get_search_films_from_redis(self, string_for_hash):
-        films = await self.redis.get(self.get_hash(string_for_hash))
+    async def get_film_from_redis(self, film_id: UUID) -> FilmDetail | None:
+        film = await self.redis.get(str(film_id))
+        if not film:
+            return None
+        return FilmDetail.parse_raw(orjson.loads(film))
+
+    async def get_all_films_from_redis(self, params: str) -> list[FilmList] | None:
+        hashed_params = self.get_hash(params, length=self.hashed_params_key_length)
+        films = await self.redis.get(f"films:list:{hashed_params}")
         if not films:
             return None
-        return [FilmList.parse_raw(film) for film in json.loads(films)]
+        return [FilmList.parse_raw(film) for film in orjson.loads(films)]
 
-    async def put_search_films_to_redis(self, films, string_for_hash):
-        json_str = json.dumps([film.json() for film in films])
-        await self.redis.set(self.get_hash(string_for_hash), json_str, ex=FILM_CACHE_EXPIRE_IN_SECONDS)
+    async def search_films_from_redis(self, params: str) -> list[FilmList] | None:
+        hashed_params = self.get_hash(params, length=self.hashed_params_key_length)
+        films = await self.redis.get(f"films:search:{hashed_params}")
+        if not films:
+            return None
+        return [FilmList.parse_raw(film) for film in orjson.loads(films)]
+
+    async def put_film_to_redis(self, film_id: UUID, film: FilmDetail) -> None:
+        serialized_film = orjson.dumps(film.json())
+        await self.redis.setex(f"films:{str(film_id)}", self.film_cache_ttl, serialized_film)
+
+    async def put_all_films_to_redis(self, films: list[FilmList], params: str) -> None:
+        hashed_params = self.get_hash(params, length=self.hashed_params_key_length)
+        serialized_films = orjson.dumps([film.json() for film in films])
+        await self.redis.setex(f"films:list:{hashed_params}", self.film_cache_ttl, serialized_films)
+
+    async def put_search_films_to_redis(self, films: list[FilmList], params: str) -> None:
+        hashed_params = self.get_hash(params, length=self.hashed_params_key_length)
+        serialized_films = orjson.dumps([film.json() for film in films])
+        await self.redis.setex(f"films:search:{hashed_params}", self.film_cache_ttl, serialized_films)
 
 
 @lru_cache()
