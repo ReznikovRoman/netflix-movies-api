@@ -2,8 +2,10 @@ from __future__ import annotations
 
 import base64
 import hashlib
+import json
 from typing import TYPE_CHECKING, ClassVar
 
+from aioredis import Redis
 from elasticsearch.exceptions import NotFoundError as ElasticNotFoundError
 
 from common.exceptions import NotFoundError
@@ -89,9 +91,32 @@ class ElasticSearchRepositoryMixin:
 class RedisRepositoryMixin:
     """Mixin for redis manipulations."""
 
+    redis: Redis
+
+    redis_cache_expire_in_seconds: ClassVar[int]
+
     @staticmethod
     def get_hash(url: str, length: int = 256) -> str:
         url_hash = hashlib.sha256(url.encode())
         hash_str = base64.urlsafe_b64encode(url_hash.digest()).decode("ascii")
 
         return hash_str[:length]
+
+    async def get_list_of_items_from_redis(self, key, pydantic_output_class):
+        items = await self.redis.get(self.get_hash(key))
+        if items is None:
+            return None
+        return [pydantic_output_class.parse_raw(item) for item in json.loads(items)]
+
+    async def get_item_from_redis(self, key, pydantic_output_class):
+        item = await self.redis.get(str(key))
+        if not item:
+            return None
+        return pydantic_output_class.parse_raw(item)
+
+    async def put_item_to_redis(self, key, item_json):
+        await self.redis.set(str(key), item_json, ex=self.redis_cache_expire_in_seconds)
+
+    async def put_items_to_redis(self, items, key):
+        items_json_str = json.dumps([item.json() for item in items])
+        await self.redis.set(self.get_hash(key), items_json_str, ex=self.redis_cache_expire_in_seconds)
