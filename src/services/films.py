@@ -37,11 +37,11 @@ class FilmService:
     async def search_films(
         self, request_params: str, page_size: int, page_number: int, query: str, sort: str | None = None,
     ) -> list[FilmList]:
-        films = await self.film_repository.search_films_from_redis(request_params)
+        films = await self.film_repository.search_films_in_redis(request_params)
         if films is not None:
             return films
 
-        films = await self.film_repository.search_films_from_elastic(
+        films = await self.film_repository.search_films_in_elastic(
             page_size=page_size, page_number=page_number, query=query, sort=sort)
         await self.film_repository.put_search_films_to_redis(films, params=request_params)
         return films

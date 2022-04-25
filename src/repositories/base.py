@@ -10,6 +10,7 @@ from common.exceptions import NotFoundError
 
 
 if TYPE_CHECKING:
+    from aioredis import Redis
     from elasticsearch import AsyncElasticsearch
 
 
@@ -87,11 +88,27 @@ class ElasticSearchRepositoryMixin:
 
 
 class RedisRepositoryMixin:
-    """Mixin for redis manipulations."""
+    """Миксин для работы с Redis."""
+
+    redis: Redis
+
+    async def find_collision_free_key(self, given: str, *, min_length: int, prefix: str | None = None) -> str:
+        """Получение ключа с учетом возможных коллизий."""
+        current_length: int = min_length
+        is_collision: bool = True
+        while is_collision:
+            hashed_key = self.calculate_hash_for_given_str(given, current_length)
+            is_collision = await self.redis.exists(hashed_key)
+            current_length += 1
+
+        key = hashed_key
+        if prefix is not None:
+            prefix = prefix.removesuffix(":")
+            key = f"{prefix}:{hashed_key}"
+        return key
 
     @staticmethod
-    def get_hash(url: str, length: int = 256) -> str:
-        url_hash = hashlib.sha256(url.encode())
+    def calculate_hash_for_given_str(given: str, length: int) -> str:
+        url_hash = hashlib.sha256(given.encode())
         hash_str = base64.urlsafe_b64encode(url_hash.digest()).decode("ascii")
-
         return hash_str[:length]
