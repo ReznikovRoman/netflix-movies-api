@@ -27,6 +27,11 @@ app = FastAPI(
 
 @app.on_event("startup")
 async def startup():
+    redis.redis = await aioredis.from_url(
+        url=f"redis://{settings.REDIS_HOST}:{settings.REDIS_PORT}",
+        encoding="utf-8",
+        decode_responses=settings.REDIS_DECODE_RESPONSES,
+    )
     elastic.es = AsyncElasticsearch(
         hosts=[
             {"host": settings.ES_HOST, "port": settings.ES_PORT},
@@ -35,17 +40,12 @@ async def startup():
         retry_on_timeout=True,
         request_timeout=30,
     )
-    redis.redis = await aioredis.from_url(
-        url=f"redis://{settings.REDIS_HOST}:{settings.REDIS_PORT}",
-        encoding="utf-8",
-        decode_responses=settings.REDIS_RESP,
-    )
 
 
 @app.on_event("shutdown")
 async def shutdown():
-    await elastic.es.close()
     await redis.redis.close()
+    await elastic.es.close()
 
 
 app.include_router(api_router, prefix=settings.API_V1_STR)

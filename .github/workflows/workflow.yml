@@ -74,7 +74,7 @@ jobs:
           export NMA_DEBUG=0
           export NMA_REDIS_HOST=redis
           export NMA_REDIS_PORT=6379
-          export NMA_REDIS_RESP=1
+          export NMA_REDIS_DECODE_RESPONSES=1
           export NE_ES_HOST=elasticsearch
           export NE_ES_PORT=9200
           make test

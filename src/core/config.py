@@ -28,7 +28,7 @@ class ProjectSettings(BaseSettings):
     # Redis
     REDIS_HOST: str
     REDIS_PORT: int
-    REDIS_RESP: bool = True
+    REDIS_DECODE_RESPONSES: bool = True
 
     class Config(EnvConfig):
         env_prefix = "NMA_"
