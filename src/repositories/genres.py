@@ -2,7 +2,6 @@ from functools import lru_cache
 from typing import ClassVar
 from uuid import UUID
 
-import orjson
 from aioredis import Redis
 from elasticsearch import AsyncElasticsearch
 from pydantic import parse_obj_as
@@ -21,7 +20,7 @@ class GenreRepository(ElasticRepositoryMixin, RedisRepositoryMixin):
 
     es_index_name: ClassVar[str] = "genre"
 
-    genre_cache_ttl: ClassVar[int] = 5 * 60  # 5 минут
+    redis_ttl: ClassVar[int] = 5 * 60  # 5 минут
 
     def __init__(self, elastic: AsyncElasticsearch, redis: Redis):
         self.elastic = elastic
@@ -34,26 +33,6 @@ class GenreRepository(ElasticRepositoryMixin, RedisRepositoryMixin):
     async def get_all_genres_from_elastic(self) -> list[GenreDetail]:
         genres_docs = await self.get_documents_from_elastic()
         return parse_obj_as(list[GenreDetail], genres_docs)
-
-    async def get_genre_from_redis(self, genre_id: UUID) -> GenreDetail | None:
-        genre = await self.redis.get(f"genres:{str(genre_id)}")
-        if not genre:
-            return None
-        return GenreDetail.parse_raw(orjson.loads(genre))
-
-    async def get_all_genres_from_redis(self) -> list[GenreDetail] | None:
-        genres = await self.redis.get("genres:list")
-        if not genres:
-            return None
-        return [GenreDetail.parse_raw(genre_raw) for genre_raw in orjson.loads(genres)]
-
-    async def put_genre_to_redis(self, genre_id: UUID, genre: GenreDetail) -> None:
-        serialized_genre = orjson.dumps(genre.json())
-        await self.redis.setex(f"genres:{str(genre_id)}", self.genre_cache_ttl, serialized_genre)
-
-    async def put_all_genres_to_redis(self, genres: list[GenreDetail]) -> None:
-        serialized_genres = orjson.dumps([genre.json() for genre in genres])
-        await self.redis.setex("genres:list", self.genre_cache_ttl, serialized_genres)
 
 
 @lru_cache()
