@@ -23,8 +23,13 @@ class GenreService:
         return genre
 
     async def get_all_genres(self) -> list[GenreDetail]:
-        # TODO add redis cache check
-        genres = await self.genre_repo.get_all_genres_from_elastic()
+        string_for_hash = "all_genres"
+        genres = await self.genre_repo.get_all_genres_from_redis(string_for_hash)
+        if not genres:
+            genres = await self.genre_repo.get_all_genres_from_elastic()
+            if not genres:
+                return None
+            await self.genre_repo.put_all_genres_to_redis(genres=genres, string_for_hash=string_for_hash)
         return genres
 
 

@@ -1,3 +1,4 @@
+import json
 from functools import lru_cache
 from typing import ClassVar
 from uuid import UUID
@@ -12,13 +13,13 @@ from db.elastic import get_elastic
 from db.redis import get_redis
 from schemas.genres import GenreDetail
 
-from .base import ElasticRepositoryMixin
+from .base import ElasticRepositoryMixin, RedisRepositoryMixin
 
 
 GENRE_CACHE_EXPIRE_IN_SECONDS = 60 * 5
 
 
-class GenreRepository(ElasticRepositoryMixin):
+class GenreRepository(ElasticRepositoryMixin, RedisRepositoryMixin):
     """Репозиторий для работы с данными Жанров."""
 
     es_index_name: ClassVar[str] = "genre"
@@ -43,6 +44,16 @@ class GenreRepository(ElasticRepositoryMixin):
     async def get_all_genres_from_elastic(self) -> list[GenreDetail]:
         genres_docs = await self.get_documents_from_elastic()
         return parse_obj_as(list[GenreDetail], genres_docs)
+
+    async def get_all_genres_from_redis(self, string_for_hash) -> list[GenreDetail]:
+        data = await self.redis.get(self.get_hash(string_for_hash))
+        if not data:
+            return None
+        return [GenreDetail.parse_raw(genre) for genre in json.loads(data)]
+
+    async def put_all_genres_to_redis(self, genres, string_for_hash):
+        genres_json_data = json.dumps([genre.json() for genre in genres])
+        await self.redis.set(self.get_hash(string_for_hash), genres_json_data, ex=GENRE_CACHE_EXPIRE_IN_SECONDS)
 
 
 @lru_cache()
