@@ -69,62 +69,6 @@ class PersonRepository(ElasticSearchRepositoryMixin, ElasticRepositoryMixin, Red
         persons_docs = await self.get_documents_from_elastic(request_body=request_body)
         return parse_obj_as(list[PersonShortDetail], persons_docs)
 
-    async def get_person_from_redis(self, person_id: UUID) -> PersonShortDetail | None:
-        person = await self.redis.get(f"persons:{str(person_id)}")
-        if not person:
-            return None
-        return PersonShortDetail.parse_raw(orjson.loads(person))
-
-    async def get_person_detailed_from_redis(self, person_id: UUID) -> PersonFullDetail | None:
-        person = await self.redis.get(f"persons:{str(person_id)}.detailed")
-        if not person:
-            return None
-        return PersonFullDetail.parse_raw(orjson.loads(person))
-
-    async def get_person_films_from_redis(self, person_id: UUID) -> list[FilmList] | None:
-        person_films = await self.redis.get(f"persons:{str(person_id)}:films")
-        if not person_films:
-            return None
-        return [FilmList.parse_raw(film) for film in orjson.loads(person_films)]
-
-    async def get_all_persons_from_redis(self, params: str) -> list[PersonList] | None:
-        hashed_params = self.calculate_hash_for_given_str(params, length=self.hashed_params_key_length)
-        persons = await self.redis.get(f"persons:list:{hashed_params}")
-        if not persons:
-            return None
-        return [PersonList.parse_raw(person) for person in orjson.loads(persons)]
-
-    async def search_persons_in_redis(self, params: str) -> list[PersonShortDetail] | None:
-        hashed_params = self.calculate_hash_for_given_str(params, length=self.hashed_params_key_length)
-        persons = await self.redis.get(f"persons:search:{hashed_params}")
-        if not persons:
-            return None
-        return [PersonShortDetail.parse_raw(person) for person in orjson.loads(persons)]
-
-    async def put_person_to_redis(self, person_id: UUID, person: PersonShortDetail):
-        serialized_person = orjson.dumps(person.json())
-        await self.redis.setex(f"persons:{str(person_id)}", self.person_cache_ttl, serialized_person)
-
-    async def put_person_detailed_to_redis(self, person_id: UUID, person: PersonFullDetail):
-        serialized_person = orjson.dumps(person.json())
-        await self.redis.setex(f"persons:{str(person_id)}.detailed", self.person_cache_ttl, serialized_person)
-
-    async def put_person_films_to_redis(self, person_id: UUID, person_films: list[FilmList]) -> None:
-        serialized_films = orjson.dumps([film.json() for film in person_films])
-        await self.redis.setex(f"persons:{str(person_id)}:films", self.person_cache_ttl, serialized_films)
-
-    async def put_all_persons_to_redis(self, persons: list[PersonList], params: str) -> None:
-        key = await self.find_collision_free_key(
-            params, min_length=self.hashed_params_key_length, prefix="persons:list")
-        serialized_persons = orjson.dumps([person.json() for person in persons])
-        await self.redis.setex(key, self.person_cache_ttl, serialized_persons)
-
-    async def put_search_persons_to_redis(self, persons: list[PersonShortDetail], params: str) -> None:
-        key = await self.find_collision_free_key(
-            params, min_length=self.hashed_params_key_length, prefix="persons:search")
-        serialized_persons = orjson.dumps([person.json() for person in persons])
-        await self.redis.setex(key, self.person_cache_ttl, serialized_persons)
-
     @staticmethod
     def _get_distinct_films_from_roles(roles_data: dict) -> list[FilmList]:
         """Получение уникальных фильмов из данных по ролям `roles_data`.
