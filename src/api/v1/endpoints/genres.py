@@ -17,6 +17,7 @@ async def get_genre(uuid: UUID, genre_service: GenreService = Depends(get_genre_
         genre = await genre_service.get_genre_by_id(uuid)
     except NotFoundError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="genre not found")
+
     return genre
 
 
