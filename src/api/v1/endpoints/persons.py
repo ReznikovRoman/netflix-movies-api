@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 
 from api.deps import PageNumberPaginationQueryParams
 from common.exceptions import NotFoundError
@@ -15,11 +15,13 @@ router = APIRouter()
 
 @router.get("/", response_model=list[PersonList], summary="Персоны")
 async def get_persons(
+    request: Request,
     person_service: PersonService = Depends(get_person_service),
     pagination_params: PageNumberPaginationQueryParams = Depends(PageNumberPaginationQueryParams),
 ):
     """Получение списка персон."""
     persons = await person_service.get_all_persons(
+        request_params=request.url.query,
         page_size=pagination_params.page_size, page_number=pagination_params.page_number,
     )
     return persons
@@ -27,12 +29,14 @@ async def get_persons(
 
 @router.get("/search", response_model=list[PersonShortDetail], summary="Поиск по персонам")
 async def search_persons(
+    request: Request,
     person_service: PersonService = Depends(get_person_service),
     pagination_params: PageNumberPaginationQueryParams = Depends(PageNumberPaginationQueryParams),
     query: str = Query(..., description="Поиск по Персонам.", required=True),
 ):
     """Поиск по персонам."""
     persons = await person_service.search_persons(
+        request_params=request.url.query,
         page_size=pagination_params.page_size, page_number=pagination_params.page_number, query=query,
     )
     return persons

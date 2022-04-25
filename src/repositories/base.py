@@ -92,19 +92,18 @@ class RedisRepositoryMixin:
 
     redis: Redis
 
-    async def find_collision_free_key(self, given: str, *, min_length: int, prefix: str | None = None) -> str:
+    async def find_collision_free_key(
+        self, key_to_hash: str, *, min_length: int, prefix: str | None = None, suffix: str = None,
+    ) -> str:
         """Получение ключа с учетом возможных коллизий."""
         current_length: int = min_length
         is_collision: bool = True
         while is_collision:
-            hashed_key = self.calculate_hash_for_given_str(given, current_length)
-            is_collision = await self.redis.exists(hashed_key)
+            hashed_key = self.calculate_hash_for_given_str(key_to_hash, current_length)
+            key = self.make_key_with_affixes(hashed_key, prefix, suffix)
+            is_collision = await self.redis.exists(key)
             current_length += 1
 
-        key = hashed_key
-        if prefix is not None:
-            prefix = prefix.removesuffix(":")
-            key = f"{prefix}:{hashed_key}"
         return key
 
     @staticmethod
@@ -112,3 +111,14 @@ class RedisRepositoryMixin:
         url_hash = hashlib.sha256(given.encode())
         hash_str = base64.urlsafe_b64encode(url_hash.digest()).decode("ascii")
         return hash_str[:length]
+
+    @staticmethod
+    def make_key_with_affixes(base: str, prefix: str | None = None, suffix: str | None = None) -> str:
+        key = base
+        if prefix is not None:
+            prefix = prefix.removesuffix(":")
+            key = f"{prefix}:{key}"
+        if suffix is not None:
+            suffix = suffix.removeprefix(":")
+            key = f"{key}:{suffix}"
+        return key

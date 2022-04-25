@@ -10,68 +10,58 @@ from schemas.roles import PersonFullDetail
 
 
 class PersonService:
-    """Service for work with persons."""
+    """Сервис для работы с персонами."""
 
-    def __init__(self, person_repo: PersonRepository):
-        self.person_repo = person_repo
+    def __init__(self, person_repository: PersonRepository):
+        self.person_repository = person_repository
 
     async def get_person_by_id(self, person_id: UUID) -> PersonShortDetail:
-        person = await self.person_repo.get_person_from_redis(person_id)
-        if not person:
-            person = await self.person_repo.get_person_from_elastic(person_id)
-            if not person:
-                return None
-            await self.person_repo.put_person_to_redis(person_id, person.json())
+        person = await self.person_repository.get_person_from_redis(person_id)
+        if person is not None:
+            return person
+
+        person = await self.person_repository.get_person_from_elastic(person_id)
+        await self.person_repository.put_person_to_redis(person_id, person)
         return person
 
     async def get_person_detail_by_id(self, person_id: UUID) -> PersonFullDetail:
-        person = await self.person_repo.get_person_detail_from_redis(person_id)
-        if not person:
-            person = await self.person_repo.get_person_detail_from_elastic(str(person_id))
-            if not person:
-                return None
-            await self.person_repo.put_person_detail_to_redis(person_id, person.json())
+        person = await self.person_repository.get_person_detailed_from_redis(person_id)
+        if person is not None:
+            return person
+
+        person = await self.person_repository.get_person_detailed_from_elastic(person_id)
+        await self.person_repository.put_person_detailed_to_redis(person_id, person)
         return person
 
-    async def get_all_persons(self, page_size: int, page_number: int, query: str | None = None) -> list[PersonList]:
-        string_for_hash = f"all_persons{page_size}{page_number}{query}"
-        persons = await self.person_repo.get_all_persons_from_redis(string_for_hash)
-        if not persons:
-            persons = await self.person_repo.get_all_persons_from_elastic(
-                page_size=page_size,
-                page_number=page_number,
-                query=query,
-            )
-            if not persons:
-                return None
-            await self.person_repo.put_all_persons_to_redis(persons=persons, string_for_hash=string_for_hash)
+    async def get_all_persons(
+        self, request_params: str, page_size: int, page_number: int, query: str | None = None,
+    ) -> list[PersonList]:
+        persons = await self.person_repository.get_all_persons_from_redis(request_params)
+        if persons is not None:
+            return persons
+
+        persons = await self.person_repository.get_all_persons_from_elastic(
+            page_size=page_size, page_number=page_number, query=query)
+        await self.person_repository.put_all_persons_to_redis(persons, params=request_params)
         return persons
 
-    async def search_persons(self, page_size: int, page_number: int, query: str):
-        string_for_hash = f"search_persons{page_size}{page_number}{query}"
-        persons = await self.person_repo.search_persons_from_redis(string_for_hash)
-        if not persons:
-            persons = await self.person_repo.search_persons_from_elastic(
-                page_size=page_size,
-                page_number=page_number,
-                query=query,
-            )
-            if not persons:
-                return None
-            await self.person_repo.put_search_persons_to_redis(persons=persons, string_for_hash=string_for_hash)
+    async def search_persons(self, request_params: str, page_size: int, page_number: int, query: str):
+        persons = await self.person_repository.search_persons_in_redis(request_params)
+        if persons is not None:
+            return persons
+
+        persons = await self.person_repository.search_persons_in_elastic(
+            page_size=page_size, page_number=page_number, query=query)
+        await self.person_repository.put_search_persons_to_redis(persons, params=request_params)
         return persons
 
     async def get_person_films(self, person_id: UUID) -> list[FilmList]:
-        string_for_hash = f"persons_film{person_id}"
-        person_films = await self.person_repo.get_person_films_from_redis(string_for_hash)
-        if not person_films:
-            person_films = await self.person_repo.get_person_films_from_elastic(person_id)
-            if not person_films:
-                return None
-            await self.person_repo.put_person_films_to_redis(
-                person_films=person_films,
-                string_for_hash=string_for_hash,
-            )
+        person_films = await self.person_repository.get_person_films_from_redis(person_id)
+        if person_films is not None:
+            return person_films
+
+        person_films = await self.person_repository.get_person_films_from_elastic(person_id)
+        await self.person_repository.put_person_films_to_redis(person_id, person_films)
         return person_films
 
 
