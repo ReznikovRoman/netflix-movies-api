@@ -8,6 +8,7 @@ import orjson
 from elasticsearch.exceptions import NotFoundError as ElasticNotFoundError
 
 from common.exceptions import NotFoundError
+from common.types import ApiSchema, ApiSchemaClass
 
 
 if TYPE_CHECKING:
@@ -93,25 +94,25 @@ class RedisRepositoryMixin:
 
     redis: Redis
 
-    redis_ttl: ClassVar[int]
+    redis_ttl: ClassVar[int] = 5 * 60  # 5 минут
 
-    async def get_items_from_redis(self, key: str, schema) -> list | None:
+    async def get_items_from_redis(self, key: str, schema_class: ApiSchemaClass) -> list[ApiSchema] | None:
         items = await self.redis.get(key)
         if items is None:
             return None
-        return [schema.parse_raw(item) for item in orjson.loads(items)]
+        return [schema_class.parse_raw(item) for item in orjson.loads(items)]
 
-    async def get_item_from_redis(self, key: str, schema) -> int | None:  # TODO: change types
-        item = await self.redis.get(str(key))
+    async def get_item_from_redis(self, key: str, schema_class: ApiSchemaClass) -> ApiSchema | None:
+        item = await self.redis.get(key)
         if not item:
             return None
-        return schema.parse_raw(item)
+        return schema_class.parse_raw(orjson.loads(item))
 
-    async def put_item_to_redis(self, key: str, item) -> None:
+    async def put_item_to_redis(self, key: str, item: ApiSchema) -> None:
         serialized_item = orjson.dumps(item.json())
         await self.redis.setex(key, self.redis_ttl, serialized_item)
 
-    async def put_items_to_redis(self, key: str, items) -> None:
+    async def put_items_to_redis(self, key: str, items: list[ApiSchema]) -> None:
         serialized_items = orjson.dumps([item.json() for item in items])
         await self.redis.setex(key, self.redis_ttl, serialized_items)
 
