@@ -66,42 +66,6 @@ class FilmRepository(ElasticSearchRepositoryMixin, ElasticRepositoryMixin, Redis
         films_docs = await self.get_documents_from_elastic(request_body=request_body, sort=sort)
         return parse_obj_as(list[FilmList], films_docs)
 
-    async def get_film_from_redis(self, film_id: UUID) -> FilmDetail | None:
-        film = await self.redis.get(str(film_id))
-        if not film:
-            return None
-        return FilmDetail.parse_raw(orjson.loads(film))
-
-    async def get_all_films_from_redis(self, params: str) -> list[FilmList] | None:
-        hashed_params = self.calculate_hash_for_given_str(params, length=self.hashed_params_key_length)
-        films = await self.redis.get(f"films:list:{hashed_params}")
-        if not films:
-            return None
-        return [FilmList.parse_raw(film) for film in orjson.loads(films)]
-
-    async def search_films_in_redis(self, params: str) -> list[FilmList] | None:
-        hashed_params = self.calculate_hash_for_given_str(params, length=self.hashed_params_key_length)
-        films = await self.redis.get(f"films:search:{hashed_params}")
-        if not films:
-            return None
-        return [FilmList.parse_raw(film) for film in orjson.loads(films)]
-
-    async def put_film_to_redis(self, film_id: UUID, film: FilmDetail) -> None:
-        serialized_film = orjson.dumps(film.json())
-        await self.redis.setex(f"films:{str(film_id)}", self.film_cache_ttl, serialized_film)
-
-    async def put_all_films_to_redis(self, films: list[FilmList], params: str) -> None:
-        key = await self.find_collision_free_key(
-            params, min_length=self.hashed_params_key_length, prefix="films:list")
-        serialized_films = orjson.dumps([film.json() for film in films])
-        await self.redis.setex(key, self.film_cache_ttl, serialized_films)
-
-    async def put_search_films_to_redis(self, films: list[FilmList], params: str) -> None:
-        key = await self.find_collision_free_key(
-            params, min_length=self.hashed_params_key_length, prefix="films:search")
-        serialized_films = orjson.dumps([film.json() for film in films])
-        await self.redis.setex(key, self.film_cache_ttl, serialized_films)
-
 
 @lru_cache()
 def get_film_repository(

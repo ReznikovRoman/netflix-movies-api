@@ -14,36 +14,49 @@ class FilmService:
         self.film_repository = film_repository
 
     async def get_film_by_id(self, film_id: UUID) -> FilmDetail:
-        film = await self.film_repository.get_film_from_redis(film_id)
+        film_key = f"films:{str(film_id)}"
+        film = await self.film_repository.get_item_from_redis(film_key, FilmDetail)
         if film is not None:
             return film
 
         film = await self.film_repository.get_film_from_elastic(film_id)
-        await self.film_repository.put_film_to_redis(film_id, film)
+        await self.film_repository.put_item_to_redis(film_key, film)
         return film
 
     async def get_all_films(
         self, request_params: str, page_size: int, page_number: int, genre: str | None = None, sort: str | None = None,
     ) -> list[FilmList]:
-        films = await self.film_repository.get_all_films_from_redis(request_params)
+        hashed_params = self.film_repository.calculate_hash_for_given_str(
+            request_params, length=self.film_repository.hashed_params_key_length)
+        films_key = f"films:list:{hashed_params}"
+        films = await self.film_repository.get_items_from_redis(films_key, FilmList)
         if films is not None:
             return films
 
         films = await self.film_repository.get_all_films_from_elastic(
             page_size=page_size, page_number=page_number, genre=genre, sort=sort)
-        await self.film_repository.put_all_films_to_redis(films, params=request_params)
+
+        key = await self.film_repository.find_collision_free_key(
+            request_params, min_length=self.film_repository.hashed_params_key_length, prefix="films:list")
+        await self.film_repository.put_items_to_redis(key, films)
         return films
 
     async def search_films(
         self, request_params: str, page_size: int, page_number: int, query: str, sort: str | None = None,
     ) -> list[FilmList]:
-        films = await self.film_repository.search_films_in_redis(request_params)
+        hashed_params = self.film_repository.calculate_hash_for_given_str(
+            request_params, length=self.film_repository.hashed_params_key_length)
+        films_key = f"films:search:{hashed_params}"
+        films = await self.film_repository.get_items_from_redis(films_key, FilmList)
         if films is not None:
             return films
 
         films = await self.film_repository.search_films_in_elastic(
             page_size=page_size, page_number=page_number, query=query, sort=sort)
-        await self.film_repository.put_search_films_to_redis(films, params=request_params)
+
+        key = await self.film_repository.find_collision_free_key(
+            request_params, min_length=self.film_repository.hashed_params_key_length, prefix="films:search")
+        await self.film_repository.put_items_to_redis(key, films)
         return films
 
 
