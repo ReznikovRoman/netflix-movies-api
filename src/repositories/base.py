@@ -1,13 +1,18 @@
 from __future__ import annotations
 
+import base64
+import hashlib
 from typing import TYPE_CHECKING, ClassVar
 
+import orjson
 from elasticsearch.exceptions import NotFoundError as ElasticNotFoundError
 
 from common.exceptions import NotFoundError
+from common.types import ApiSchema, ApiSchemaClass
 
 
 if TYPE_CHECKING:
+    from aioredis import Redis
     from elasticsearch import AsyncElasticsearch
 
 
@@ -82,3 +87,62 @@ class ElasticSearchRepositoryMixin:
             return 0
         offset = (page_size * page_number) - page_size
         return offset
+
+
+class RedisRepositoryMixin:
+    """Миксин для работы с Redis."""
+
+    redis: Redis
+
+    redis_ttl: ClassVar[int] = 5 * 60  # 5 минут
+
+    async def get_items_from_redis(self, key: str, schema_class: ApiSchemaClass) -> list[ApiSchema] | None:
+        items = await self.redis.get(key)
+        if items is None:
+            return None
+        return [schema_class.parse_raw(item) for item in orjson.loads(items)]
+
+    async def get_item_from_redis(self, key: str, schema_class: ApiSchemaClass) -> ApiSchema | None:
+        item = await self.redis.get(key)
+        if not item:
+            return None
+        return schema_class.parse_raw(orjson.loads(item))
+
+    async def put_item_to_redis(self, key: str, item: ApiSchema) -> None:
+        serialized_item = orjson.dumps(item.json())
+        await self.redis.setex(key, self.redis_ttl, serialized_item)
+
+    async def put_items_to_redis(self, key: str, items: list[ApiSchema]) -> None:
+        serialized_items = orjson.dumps([item.json() for item in items])
+        await self.redis.setex(key, self.redis_ttl, serialized_items)
+
+    async def find_collision_free_key(
+        self, key_to_hash: str, *, min_length: int, prefix: str | None = None, suffix: str = None,
+    ) -> str:
+        """Получение ключа с учетом возможных коллизий."""
+        current_length: int = min_length
+        is_collision: bool = True
+        while is_collision:
+            hashed_key = self.calculate_hash_for_given_str(key_to_hash, current_length)
+            key = self.make_key_with_affixes(hashed_key, prefix, suffix)
+            is_collision = await self.redis.exists(key)
+            current_length += 1
+
+        return key
+
+    @staticmethod
+    def calculate_hash_for_given_str(given: str, length: int) -> str:
+        url_hash = hashlib.sha256(given.encode())
+        hash_str = base64.urlsafe_b64encode(url_hash.digest()).decode("ascii")
+        return hash_str[:length]
+
+    @staticmethod
+    def make_key_with_affixes(base: str, prefix: str | None = None, suffix: str | None = None) -> str:
+        key = base
+        if prefix is not None:
+            prefix = prefix.removesuffix(":")
+            key = f"{prefix}:{key}"
+        if suffix is not None:
+            suffix = suffix.removeprefix(":")
+            key = f"{key}:{suffix}"
+        return key

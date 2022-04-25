@@ -74,6 +74,10 @@ NMA_SERVER_NAME=localhost
 NMA_SERVER_HOSTS=http://127.0.0.1:8001,http://localhost:8001
 NMA_PROJECT_NAME=netflix
 NMA_DEBUG=1
+# Redis
+NMA_REDIS_HOST=redis
+NMA_REDIS_PORT=6379
+MA_REDIS_RESP=1
 ```
 
 ### Запуск проекта:

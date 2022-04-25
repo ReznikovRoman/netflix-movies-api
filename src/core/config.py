@@ -25,6 +25,11 @@ class ProjectSettings(BaseSettings):
     DEBUG: bool = False
     PROJECT_BASE_URL: str
 
+    # Redis
+    REDIS_HOST: str
+    REDIS_PORT: int
+    REDIS_DECODE_RESPONSES: bool = True
+
     class Config(EnvConfig):
         env_prefix = "NMA_"
         case_sensitive = True

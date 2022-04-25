@@ -1,3 +1,4 @@
+import aioredis
 from elasticsearch import AsyncElasticsearch
 
 from fastapi import FastAPI
@@ -5,7 +6,7 @@ from fastapi.responses import ORJSONResponse
 
 from api.v1.urls import api_router
 from core.config import get_settings
-from db import elastic
+from db import elastic, redis
 
 
 settings = get_settings()
@@ -26,6 +27,11 @@ app = FastAPI(
 
 @app.on_event("startup")
 async def startup():
+    redis.redis = await aioredis.from_url(
+        url=f"redis://{settings.REDIS_HOST}:{settings.REDIS_PORT}",
+        encoding="utf-8",
+        decode_responses=settings.REDIS_DECODE_RESPONSES,
+    )
     elastic.es = AsyncElasticsearch(
         hosts=[
             {"host": settings.ES_HOST, "port": settings.ES_PORT},
@@ -38,6 +44,7 @@ async def startup():
 
 @app.on_event("shutdown")
 async def shutdown():
+    await redis.redis.close()
     await elastic.es.close()
 
 
