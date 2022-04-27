@@ -30,7 +30,7 @@ ENV PYTHONUNBUFFERED 1
 ENV PYTHONPATH /app
 
 # Set working directory
-WORKDIR /app
+WORKDIR /app/src
 
 # Copy project dependencies
 COPY --from=builder /usr/local/lib/python3.10/site-packages /usr/local/lib/python3.10/site-packages
