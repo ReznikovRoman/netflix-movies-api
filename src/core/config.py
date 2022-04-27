@@ -14,7 +14,7 @@ class EnvConfig(BaseSettings.Config):
         return super().prepare_field(field)
 
 
-class ProjectSettings(BaseSettings):
+class Settings(BaseSettings):
     """Настройки проекта."""
 
     # Project
@@ -30,6 +30,10 @@ class ProjectSettings(BaseSettings):
     REDIS_PORT: int
     REDIS_DECODE_RESPONSES: bool = True
 
+    # Elastic
+    ES_HOST: str = Field(env="NE_ES_HOST")
+    ES_PORT: int = Field(env="NE_ES_PORT")
+
     class Config(EnvConfig):
         env_prefix = "NMA_"
         case_sensitive = True
@@ -39,17 +43,6 @@ class ProjectSettings(BaseSettings):
         if isinstance(server_hosts, str):
             return [item.strip() for item in server_hosts.split(",")]
         return server_hosts
-
-
-class Settings(ProjectSettings):
-    """Общие настройки."""
-
-    # elastic
-    ES_HOST: str = Field(env="NE_ES_HOST")
-    ES_PORT: int = Field(env="NE_ES_PORT")
-
-    class Config(EnvConfig):
-        env_prefix = ""
 
 
 @lru_cache()
