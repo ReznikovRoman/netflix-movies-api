@@ -111,6 +111,7 @@ jobs:
           export NMA_REDIS_DECODE_RESPONSES=1
           export NE_ES_HOST=elasticsearch
           export NE_ES_PORT=9200
+          export PYTEST_ADDOPTS="--ignore-glob=tests/functional/*"
           make test
 
   build-and-push-image:
