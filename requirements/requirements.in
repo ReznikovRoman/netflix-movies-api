@@ -2,7 +2,7 @@ orjson==3.6.7
 pydantic==1.9.0
 requests==2.27.1
 
-fastapi==0.75.1
+fastapi==0.75.2
 
 aioredis==2.0.1
 elasticsearch[async]==7.17.2
