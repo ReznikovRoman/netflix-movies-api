@@ -26,8 +26,9 @@ class Settings(BaseSettings):
     PROJECT_BASE_URL: str
 
     # Redis
-    REDIS_HOST: str
-    REDIS_PORT: int
+    REDIS_SENTINELS: Union[str, list[str]]
+    REDIS_MASTER_SET: str
+    REDIS_PASSWORD: str
     REDIS_DECODE_RESPONSES: bool = True
 
     # Elastic
@@ -43,6 +44,12 @@ class Settings(BaseSettings):
         if isinstance(server_hosts, str):
             return [item.strip() for item in server_hosts.split(",")]
         return server_hosts
+
+    @validator("REDIS_SENTINELS", pre=True)
+    def _assemble_redis_sentinels(cls, redis_sentinels):
+        if isinstance(redis_sentinels, str):
+            return [item.strip() for item in redis_sentinels.split(",")]
+        return redis_sentinels
 
 
 @lru_cache()

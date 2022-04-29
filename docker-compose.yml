@@ -1,10 +1,38 @@
 services:
+  redis-sentinel:
+    image: bitnami/redis-sentinel:6.2.7
+    environment:
+      - REDIS_MASTER_PASSWORD=${NMA_REDIS_PASSWORD}
+      - REDIS_MASTER_SET=${NMA_REDIS_MASTER_SET}
+    depends_on:
+      - redis
+      - redis-slave
+    ports:
+      - "26379-26381:26379"
+
   redis:
-    image: redis:6.2.6-alpine
-    expose:
-      - 6380
+    image: bitnami/redis:6.2.7
+    environment:
+      - REDIS_REPLICATION_MODE=master
+      - REDIS_PASSWORD=${NMA_REDIS_PASSWORD}
+    ports:
+      - 6379
     volumes:
-      - redis_data:/data
+      - redis_master_data:/data
+
+  redis-slave:
+    image: bitnami/redis:6.2.7
+    environment:
+      - REDIS_REPLICATION_MODE=slave
+      - REDIS_MASTER_HOST=redis
+      - REDIS_MASTER_PASSWORD=${NMA_REDIS_PASSWORD}
+      - REDIS_PASSWORD=${NMA_REDIS_PASSWORD}
+    ports:
+      - 6379
+    depends_on:
+      - redis
+    volumes:
+      - redis_slave_data:/data
 
   server:
     restart: always
@@ -85,7 +113,8 @@ services:
       - kibana_etl
 
 volumes:
-  redis_data:
+  redis_master_data:
+  redis_slave_data:
   postgres_data_admin:
   redis_data_etl:
   es_data_etl:
