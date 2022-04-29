@@ -31,10 +31,6 @@ async def startup():
     redis_sentinel.redis_sentinel = aioredis.sentinel.Sentinel(
         sentinels=[(sentinel, 26379) for sentinel in settings.REDIS_SENTINELS],
         socket_timeout=0.1,
-        sentinel_kwargs={
-            "encoding": "utf-8",
-            "decode_responses": settings.REDIS_DECODE_RESPONSES,
-        },
     )
     elastic.es = AsyncElasticsearch(
         hosts=[
