@@ -38,8 +38,8 @@ jobs:
       redis-sentinel:
         image: bitnami/redis-sentinel:6.2.7
         env:
-          REDIS_MASTER_PASSWORD=secret
-          REDIS_MASTER_SET=redis_cluster
+          REDIS_MASTER_PASSWORD: secret
+          REDIS_MASTER_SET: redis_cluster
         ports:
           - "26379-26381:26379"
         options: >-
@@ -50,8 +50,8 @@ jobs:
       redis:
         image: bitnami/redis:6.2.7
         env:
-          REDIS_REPLICATION_MODE=master
-          REDIS_PASSWORD=secret
+          REDIS_REPLICATION_MODE: master
+          REDIS_PASSWORD: secret
         ports:
           - 6379
         options: >-
@@ -62,10 +62,10 @@ jobs:
       redis-slave:
         image: bitnami/redis:6.2.7
         env:
-          REDIS_REPLICATION_MODE=slave
-          REDIS_MASTER_HOST=redis
-          REDIS_MASTER_PASSWORD=secret
-          REDIS_PASSWORD=secret
+          REDIS_REPLICATION_MODE: slave
+          REDIS_MASTER_HOST: redis
+          REDIS_MASTER_PASSWORD: secret
+          REDIS_PASSWORD: secret
         ports:
           - 6379
         options: >-
