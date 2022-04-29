@@ -30,11 +30,16 @@ class ElasticRepositoryMixin:
             raise NotFoundError()
         return doc["_source"]
 
-    async def get_documents_from_elastic(self, request_body: dict | None = None, **search_options) -> list[dict]:
+    async def get_documents_from_elastic(
+        self, index_name: str | None = None, request_body: dict | None = None, **search_options,
+    ) -> list[dict]:
         if request_body is None:
             request_body = self.prepare_search_request()
+        if index_name is None:
+            index_name = self.es_index_name
+
         docs = await self.elastic.search(
-            index=self.es_index_name,
+            index=index_name,
             body=request_body,
             **search_options,
         )
