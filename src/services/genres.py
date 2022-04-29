@@ -15,17 +15,17 @@ class GenreService:
 
     async def get_genre_by_id(self, genre_id: UUID) -> GenreDetail:
         genre_key: str = f"genres:{str(genre_id)}"
-        genre = await self.genre_repository.get_item_from_redis(genre_key, GenreDetail)
+        genre = await self.genre_repository.get_item_from_cache(genre_key, GenreDetail)
         if genre is not None:
             return genre
 
         genre = await self.genre_repository.get_genre_from_elastic(genre_id)
-        await self.genre_repository.put_item_to_redis(genre_key, genre)
+        await self.genre_repository.put_item_to_cache(genre_key, genre)
         return genre
 
     async def get_all_genres(self) -> list[GenreDetail]:
         genres_key: str = "genres:list"
-        genres = await self.genre_repository.get_items_from_redis(genres_key, GenreDetail)
+        genres = await self.genre_repository.get_items_from_cache(genres_key, GenreDetail)
         if genres is not None:
             return genres
 

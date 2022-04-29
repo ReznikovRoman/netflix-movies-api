@@ -15,12 +15,12 @@ class FilmService:
 
     async def get_film_by_id(self, film_id: UUID) -> FilmDetail:
         film_key = f"films:{str(film_id)}"
-        film = await self.film_repository.get_item_from_redis(film_key, FilmDetail)
+        film = await self.film_repository.get_item_from_cache(film_key, FilmDetail)
         if film is not None:
             return film
 
         film = await self.film_repository.get_film_from_elastic(film_id)
-        await self.film_repository.put_item_to_redis(film_key, film)
+        await self.film_repository.put_item_to_cache(film_key, film)
         return film
 
     async def get_all_films(
@@ -29,14 +29,14 @@ class FilmService:
         hashed_params = self.film_repository.calculate_hash_for_given_str(
             request_params, length=self.film_repository.hashed_params_key_length)
         films_key = f"films:list:{hashed_params}"
-        films = await self.film_repository.get_items_from_redis(films_key, FilmList)
+        films = await self.film_repository.get_items_from_cache(films_key, FilmList)
         if films is not None:
             return films
 
         films = await self.film_repository.get_all_films_from_elastic(
             page_size=page_size, page_number=page_number, genre=genre, sort=sort)
 
-        key = await self.film_repository.find_collision_free_key(
+        key = await self.film_repository.make_key(
             request_params, min_length=self.film_repository.hashed_params_key_length, prefix="films:list")
         await self.film_repository.put_items_to_redis(key, films)
         return films
@@ -47,14 +47,14 @@ class FilmService:
         hashed_params = self.film_repository.calculate_hash_for_given_str(
             request_params, length=self.film_repository.hashed_params_key_length)
         films_key = f"films:search:{hashed_params}"
-        films = await self.film_repository.get_items_from_redis(films_key, FilmList)
+        films = await self.film_repository.get_items_from_cache(films_key, FilmList)
         if films is not None:
             return films
 
         films = await self.film_repository.search_films_in_elastic(
             page_size=page_size, page_number=page_number, query=query, sort=sort)
 
-        key = await self.film_repository.find_collision_free_key(
+        key = await self.film_repository.make_key(
             request_params, min_length=self.film_repository.hashed_params_key_length, prefix="films:search")
         await self.film_repository.put_items_to_redis(key, films)
         return films

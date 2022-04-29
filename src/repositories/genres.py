@@ -2,29 +2,28 @@ from functools import lru_cache
 from typing import ClassVar
 from uuid import UUID
 
-from aioredis import Redis
 from elasticsearch import AsyncElasticsearch
 from pydantic import parse_obj_as
 
 from fastapi import Depends
 
+from db.cache import AsyncCache, get_redis_cache
 from db.elastic import get_elastic
-from db.redis import get_redis
 from schemas.genres import GenreDetail
 
-from .base import ElasticRepositoryMixin, RedisRepositoryMixin
+from .base import CacheRepositoryMixin, ElasticRepositoryMixin
 
 
-class GenreRepository(ElasticRepositoryMixin, RedisRepositoryMixin):
+class GenreRepository(ElasticRepositoryMixin, CacheRepositoryMixin):
     """Репозиторий для работы с данными Жанров."""
 
     es_index_name: ClassVar[str] = "genre"
 
     redis_ttl: ClassVar[int] = 5 * 60  # 5 минут
 
-    def __init__(self, elastic: AsyncElasticsearch, redis: Redis):
+    def __init__(self, elastic: AsyncElasticsearch, cache: AsyncCache):
         self.elastic = elastic
-        self.redis = redis
+        self.cache = cache
 
     async def get_genre_from_elastic(self, genre_id: UUID) -> GenreDetail:
         genre_doc = await self.get_document_from_elastic(str(genre_id))
@@ -37,7 +36,7 @@ class GenreRepository(ElasticRepositoryMixin, RedisRepositoryMixin):
 
 @lru_cache()
 def get_genre_repository(
-        redis: Redis = Depends(get_redis),
+        redis: AsyncCache = Depends(get_redis_cache),
         elastic: AsyncElasticsearch = Depends(get_elastic),
 ) -> GenreRepository:
     return GenreRepository(elastic, redis)

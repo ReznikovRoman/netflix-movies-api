@@ -2,23 +2,22 @@ from functools import lru_cache
 from typing import ClassVar
 from uuid import UUID
 
-from aioredis import Redis
 from elasticsearch import AsyncElasticsearch
 from pydantic import parse_obj_as
 
 from fastapi import Depends
 
+from db.cache import AsyncCache, get_redis_cache
 from db.elastic import get_elastic
-from db.redis import get_redis
 from schemas.films import FilmList
 from schemas.persons import PersonList, PersonShortDetail
 from schemas.roles import PersonFullDetail
 
-from .base import ElasticRepositoryMixin, ElasticSearchRepositoryMixin, RedisRepositoryMixin
+from .base import CacheRepositoryMixin, ElasticRepositoryMixin, ElasticSearchRepositoryMixin
 from .films import FilmRepository
 
 
-class PersonRepository(ElasticSearchRepositoryMixin, ElasticRepositoryMixin, RedisRepositoryMixin):
+class PersonRepository(ElasticSearchRepositoryMixin, ElasticRepositoryMixin, CacheRepositoryMixin):
     """Репозиторий для работы с данными Персон."""
 
     es_index_name: ClassVar[str] = "person"
@@ -30,9 +29,9 @@ class PersonRepository(ElasticSearchRepositoryMixin, ElasticRepositoryMixin, Red
     person_cache_ttl: ClassVar[int] = 5 * 60  # 5 минут
     hashed_params_key_length: ClassVar[int] = 10
 
-    def __init__(self, elastic: AsyncElasticsearch, redis: Redis):
+    def __init__(self, elastic: AsyncElasticsearch, cache: AsyncCache):
         self.elastic = elastic
-        self.redis = redis
+        self.cache = cache
 
     async def get_person_from_elastic(self, person_id: UUID) -> PersonShortDetail:
         person_doc = await self.get_document_from_elastic(str(person_id))
@@ -102,7 +101,7 @@ class PersonRepository(ElasticSearchRepositoryMixin, ElasticRepositoryMixin, Red
 
 @lru_cache()
 def get_person_repository(
-        redis: Redis = Depends(get_redis),
+        redis: AsyncCache = Depends(get_redis_cache),
         elastic: AsyncElasticsearch = Depends(get_elastic),
 ) -> PersonRepository:
     return PersonRepository(elastic, redis)

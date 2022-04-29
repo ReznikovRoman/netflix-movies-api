@@ -17,22 +17,22 @@ class PersonService:
 
     async def get_person_by_id(self, person_id: UUID) -> PersonShortDetail:
         person_key: str = f"persons:{str(person_id)}"
-        person = await self.person_repository.get_item_from_redis(person_key, PersonShortDetail)
+        person = await self.person_repository.get_item_from_cache(person_key, PersonShortDetail)
         if person is not None:
             return person
 
         person = await self.person_repository.get_person_from_elastic(person_id)
-        await self.person_repository.put_item_to_redis(person_key, person)
+        await self.person_repository.put_item_to_cache(person_key, person)
         return person
 
     async def get_person_detail_by_id(self, person_id: UUID) -> PersonFullDetail:
         person_key: str = f"persons:{str(person_id)}.detailed"
-        person = await self.person_repository.get_item_from_redis(person_key, PersonFullDetail)
+        person = await self.person_repository.get_item_from_cache(person_key, PersonFullDetail)
         if person is not None:
             return person
 
         person = await self.person_repository.get_person_detailed_from_elastic(person_id)
-        await self.person_repository.put_item_to_redis(person_key, person)
+        await self.person_repository.put_item_to_cache(person_key, person)
         return person
 
     async def get_all_persons(
@@ -41,14 +41,14 @@ class PersonService:
         hashed_params = self.person_repository.calculate_hash_for_given_str(
             request_params, length=self.person_repository.hashed_params_key_length)
         persons_key: str = f"persons:list:{hashed_params}"
-        persons = await self.person_repository.get_items_from_redis(persons_key, PersonList)
+        persons = await self.person_repository.get_items_from_cache(persons_key, PersonList)
         if persons is not None:
             return persons
 
         persons = await self.person_repository.get_all_persons_from_elastic(
             page_size=page_size, page_number=page_number, query=query)
 
-        key = await self.person_repository.find_collision_free_key(
+        key = await self.person_repository.make_key(
             request_params, min_length=self.person_repository.hashed_params_key_length, prefix="persons:list")
         await self.person_repository.put_items_to_redis(key, persons)
         return persons
@@ -59,21 +59,21 @@ class PersonService:
         hashed_params = self.person_repository.calculate_hash_for_given_str(
             request_params, length=self.person_repository.hashed_params_key_length)
         persons_key: str = f"persons:search:{hashed_params}"
-        persons = await self.person_repository.get_items_from_redis(persons_key, PersonList)
+        persons = await self.person_repository.get_items_from_cache(persons_key, PersonList)
         if persons is not None:
             return persons
 
         persons = await self.person_repository.search_persons_in_elastic(
             page_size=page_size, page_number=page_number, query=query)
 
-        key = await self.person_repository.find_collision_free_key(
+        key = await self.person_repository.make_key(
             request_params, min_length=self.person_repository.hashed_params_key_length, prefix="persons:search")
         await self.person_repository.put_items_to_redis(key, persons)
         return persons
 
     async def get_person_films(self, person_id: UUID) -> list[FilmList]:
         person_key: str = f"persons:{str(person_id)}:films"
-        person_films = await self.person_repository.get_items_from_redis(person_key, FilmList)
+        person_films = await self.person_repository.get_items_from_cache(person_key, FilmList)
         if person_films is not None:
             return person_films
 
