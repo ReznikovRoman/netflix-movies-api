@@ -22,3 +22,5 @@ ApiSchemaClass = Union[
     Type[PersonShortDetail],
     Type[PersonFullDetail],
 ]
+
+seconds = int
