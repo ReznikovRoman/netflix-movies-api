@@ -14,7 +14,7 @@ lint:
 
 .PHONY: test
 test:
-	pytest
+	pytest --ignore=$(FUNCTIONAL_TESTS_DIR)
 
 .PHONY: tf
 tf:
