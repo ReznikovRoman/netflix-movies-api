@@ -116,6 +116,47 @@ make compile-requirements
 ipython
 ```
 
+### Тесты
+Запуск всех тестов с экспортом переменных окружения из `.env` файла:
+```shell
+export $(echo $(cat .env | sed 's/#.*//g'| xargs) | envsubst) && make test
+```
+
+Для функциональных тестов нужно создать файл `.env` в папке ./tests/functional
+
+**Пример `.env`:**
+```dotenv
+ENV=.env
+
+# Python
+PYTHONUNBUFFERED=1
+
+# Netflix ETL
+# Elasticsearch
+NE_ES_HOST=elasticsearch
+NE_ES_PORT=9200
+
+# Netflix Movies API
+# Project
+NMA_PROJECT_BASE_URL=http://localhost:8001
+NMA_API_V1_STR=/api/v1
+NMA_SERVER_NAME=localhost
+NMA_SERVER_HOSTS=http://localhost:8001,http://127.0.0.1:8001
+NMA_PROJECT_NAME=netflix
+NMA_DEBUG=1
+# Redis
+NMA_REDIS_SENTINELS=redis-sentinel
+NMA_REDIS_MASTER_SET=redis_cluster
+NMA_REDIS_PASSWORD=
+NMA_REDIS_DECODE_RESPONSES=1
+```
+
+Запуск функциональных тестов:
+```shell
+cd ./tests/functional && docker-compose up
+make tf
+```
+
 ### Code style:
 
 Перед коммитом проверяем, что код соответствует всем требованиям:

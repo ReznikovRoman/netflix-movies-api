@@ -1,23 +1,13 @@
 import asyncio
-from dataclasses import dataclass
-from typing import Optional
 
-import aiohttp
 import pytest
-from multidict import CIMultiDictProxy
+from elasticsearch import AsyncElasticsearch
+
+from .testdata.elastic import ES_DSNS
+from .testlib import create_anon_client, setup_elastic, teardown_elastic
 
 
 pytestmark = [pytest.mark.asyncio]
-
-
-SERVICE_URL = "http://localhost:8001"
-
-
-@dataclass
-class HTTPResponse:
-    body: dict
-    headers: CIMultiDictProxy[str]
-    status: int
 
 
 @pytest.fixture(scope="session")
@@ -28,22 +18,19 @@ def event_loop():
 
 
 @pytest.fixture(scope="session")
-async def session():
-    session = aiohttp.ClientSession()
-    yield session
-    await session.close()
+async def api_client():
+    anon_client = create_anon_client()
+    yield anon_client
+    await anon_client.close()
 
 
 @pytest.fixture
-def make_get_request(session):
-    async def inner(method: str, params: Optional[dict] = None) -> HTTPResponse:
-        params = params or {}
-        method = method.removeprefix("/")
-        url = f"{SERVICE_URL}/{method}"
-        async with session.get(url, params=params) as response:
-            return HTTPResponse(
-                body=await response.json(),
-                headers=response.headers,
-                status=response.status,
-            )
-    return inner
+async def elastic():
+    await setup_elastic()
+    yield AsyncElasticsearch(
+        hosts=ES_DSNS,
+        max_retries=30,
+        retry_on_timeout=True,
+        request_timeout=30,
+    )
+    await teardown_elastic()

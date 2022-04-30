@@ -1,0 +1,53 @@
+services:
+  redis-sentinel:
+    image: bitnami/redis-sentinel:6.2.7
+    environment:
+      - REDIS_MASTER_PASSWORD=${NMA_REDIS_PASSWORD}
+      - REDIS_MASTER_SET=${NMA_REDIS_MASTER_SET}
+    depends_on:
+      - redis
+      - redis-slave
+    expose:
+      - 26379
+
+  redis:
+    image: bitnami/redis:6.2.7
+    environment:
+      - REDIS_REPLICATION_MODE=master
+      - REDIS_PASSWORD=${NMA_REDIS_PASSWORD}
+    ports:
+      - 6379
+
+  redis-slave:
+    image: bitnami/redis:6.2.7
+    environment:
+      - REDIS_REPLICATION_MODE=slave
+      - REDIS_MASTER_HOST=redis
+      - REDIS_MASTER_PASSWORD=${NMA_REDIS_PASSWORD}
+      - REDIS_PASSWORD=${NMA_REDIS_PASSWORD}
+    ports:
+      - 6379
+    depends_on:
+      - redis
+
+  elasticsearch:
+    image: elasticsearch:7.17.2
+    environment:
+      - xpack.security.enabled=false
+      - discovery.type=single-node
+    ports:
+      - "9200:9200"
+
+  server:
+    restart: always
+    build:
+      context: ../../.
+    env_file:
+      - $ENV
+    ports:
+      - "8001:8001"
+    volumes:
+      - ../../src:/app
+    command: python -m uvicorn main:app --reload --host 0.0.0.0 --port 8001
+    depends_on:
+      - redis

@@ -1,4 +1,5 @@
 REQUIREMENTS_DIR := requirements
+FUNCTIONAL_TESTS_DIR := tests/functional
 PIP_COMPILE_ARGS := --generate-hashes --allow-unsafe --no-header --no-emit-index-url --verbose
 PIP_COMPILE := cd $(REQUIREMENTS_DIR) && pip-compile $(PIP_COMPILE_ARGS)
 
@@ -14,6 +15,10 @@ lint:
 .PHONY: test
 test:
 	pytest
+
+.PHONY: tf
+tf:
+	pytest $(FUNCTIONAL_TESTS_DIR)
 
 .PHONY: check
 check: lint test
