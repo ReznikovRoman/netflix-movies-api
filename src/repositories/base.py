@@ -79,11 +79,11 @@ class ElasticSearchRepositoryMixin:
 
 
 class CacheRepositoryMixin:
-    """Миксин для работы с Redis."""
+    """Миксин для работы с кешом."""
 
     cache: AsyncCache
 
-    redis_ttl: ClassVar[int] = 5 * 60  # 5 минут
+    cache_ttl: ClassVar[int] = 5 * 60  # 5 минут
 
     async def get_items_from_cache(self, key: str, schema_class: ApiSchemaClass) -> list[ApiSchema] | None:
         items = await self.cache.get(key)
@@ -99,11 +99,11 @@ class CacheRepositoryMixin:
 
     async def put_item_to_cache(self, key: str, item: ApiSchema) -> None:
         serialized_item = orjson.dumps(item.json())
-        await self.cache.set(key, serialized_item, timeout=self.redis_ttl)
+        await self.cache.set(key, serialized_item, timeout=self.cache_ttl)
 
     async def put_items_to_cache(self, key: str, items: list[ApiSchema]) -> None:
         serialized_items = orjson.dumps([item.json() for item in items])
-        await self.cache.set(key, serialized_items, timeout=self.redis_ttl)
+        await self.cache.set(key, serialized_items, timeout=self.cache_ttl)
 
     async def make_key(
         self, key_to_hash: str, *, min_length: int, prefix: str | None = None, suffix: str = None,

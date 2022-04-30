@@ -14,7 +14,7 @@ class GenreRepository(ElasticRepositoryMixin, CacheRepositoryMixin):
 
     es_index_name: ClassVar[str] = "genre"
 
-    redis_ttl: ClassVar[int] = 5 * 60  # 5 минут
+    cache_ttl: ClassVar[int] = 5 * 60  # 5 минут
 
     def __init__(self, storage: AsyncStorage, cache: AsyncCache):
         self.storage = storage
