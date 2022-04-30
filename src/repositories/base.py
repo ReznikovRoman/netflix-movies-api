@@ -5,15 +5,15 @@ import hashlib
 from typing import TYPE_CHECKING, ClassVar
 
 import orjson
-from elasticsearch.exceptions import NotFoundError as ElasticNotFoundError
+from pydantic import parse_obj_as
 
-from common.exceptions import NotFoundError
 from common.types import ApiSchema, ApiSchemaClass
+from db.storage.base import AsyncStorage
 
 
 if TYPE_CHECKING:
-    from aioredis import Redis
-    from elasticsearch import AsyncElasticsearch
+    from common.types import Id
+    from db.cache.base import AsyncCache
 
 
 class ElasticRepositoryMixin:
@@ -21,43 +21,27 @@ class ElasticRepositoryMixin:
 
     es_index_name: ClassVar[str]
 
-    elastic: AsyncElasticsearch
+    storage: AsyncStorage
 
-    async def get_document_from_elastic(self, document_id: str) -> dict:
-        try:
-            doc = await self.elastic.get(index=self.es_index_name, id=str(document_id))
-        except ElasticNotFoundError:
-            raise NotFoundError()
-        return doc["_source"]
+    async def get_item_from_storage(self, document_id: Id, schema_class: ApiSchemaClass) -> ApiSchema:
+        doc = await self.storage.get_by_id(instance_id=document_id, index=self.es_index_name)
+        return schema_class(**doc)
 
-    async def get_documents_from_elastic(
-        self, index_name: str | None = None, request_body: dict | None = None, **search_options,
-    ) -> list[dict]:
-        if request_body is None:
-            request_body = self.prepare_search_request()
+    async def search_items_in_storage(
+        self,
+        schema_class: ApiSchemaClass, query: dict,
+        index_name: str | None = None,
+        **search_options,
+    ) -> list[ApiSchema]:
         if index_name is None:
             index_name = self.es_index_name
 
-        docs = await self.elastic.search(
-            index=index_name,
-            body=request_body,
-            **search_options,
-        )
-        return self._prepare_documents_list(docs)
+        docs = await self.storage.search(query=query, index=index_name, **search_options)
+        return parse_obj_as(list[schema_class], docs)
 
-    def prepare_search_request(self, *args, **kwargs) -> dict:
-        request_body = {
-            "query": {"match_all": {}},
-        }
-        return request_body
-
-    @staticmethod
-    def _prepare_documents_list(docs: dict) -> list[dict]:
-        results = [
-            doc["_source"]
-            for doc in docs["hits"]["hits"]
-        ]
-        return results
+    async def get_all_items_from_storage(self, schema_class: ApiSchemaClass, **search_options) -> list[ApiSchema]:
+        docs = await self.storage.get_all(self.es_index_name, **search_options)
+        return parse_obj_as(list[schema_class], docs)
 
 
 class ElasticSearchRepositoryMixin:
@@ -94,45 +78,39 @@ class ElasticSearchRepositoryMixin:
         return offset
 
 
-class RedisRepositoryMixin:
+class CacheRepositoryMixin:
     """Миксин для работы с Redis."""
 
-    redis: Redis
+    cache: AsyncCache
 
     redis_ttl: ClassVar[int] = 5 * 60  # 5 минут
 
-    async def get_items_from_redis(self, key: str, schema_class: ApiSchemaClass) -> list[ApiSchema] | None:
-        items = await self.redis.get(key)
+    async def get_items_from_cache(self, key: str, schema_class: ApiSchemaClass) -> list[ApiSchema] | None:
+        items = await self.cache.get(key)
         if items is None:
             return None
         return [schema_class.parse_raw(item) for item in orjson.loads(items)]
 
-    async def get_item_from_redis(self, key: str, schema_class: ApiSchemaClass) -> ApiSchema | None:
-        item = await self.redis.get(key)
-        if not item:
+    async def get_item_from_cache(self, key: str, schema_class: ApiSchemaClass) -> ApiSchema | None:
+        item = await self.cache.get(key)
+        if item is None:
             return None
         return schema_class.parse_raw(orjson.loads(item))
 
-    async def put_item_to_redis(self, key: str, item: ApiSchema) -> None:
+    async def put_item_to_cache(self, key: str, item: ApiSchema) -> None:
         serialized_item = orjson.dumps(item.json())
-        await self.redis.setex(key, self.redis_ttl, serialized_item)
+        await self.cache.set(key, serialized_item, timeout=self.redis_ttl)
 
-    async def put_items_to_redis(self, key: str, items: list[ApiSchema]) -> None:
+    async def put_items_to_cache(self, key: str, items: list[ApiSchema]) -> None:
         serialized_items = orjson.dumps([item.json() for item in items])
-        await self.redis.setex(key, self.redis_ttl, serialized_items)
+        await self.cache.set(key, serialized_items, timeout=self.redis_ttl)
 
-    async def find_collision_free_key(
+    async def make_key(
         self, key_to_hash: str, *, min_length: int, prefix: str | None = None, suffix: str = None,
     ) -> str:
-        """Получение ключа с учетом возможных коллизий."""
-        current_length: int = min_length
-        is_collision: bool = True
-        while is_collision:
-            hashed_key = self.calculate_hash_for_given_str(key_to_hash, current_length)
-            key = self.make_key_with_affixes(hashed_key, prefix, suffix)
-            is_collision = await self.redis.exists(key)
-            current_length += 1
-
+        """Получение ключа для кеша."""
+        hashed_key = self.calculate_hash_for_given_str(key_to_hash, min_length)
+        key = self.make_key_with_affixes(hashed_key, prefix, suffix)
         return key
 
     @staticmethod

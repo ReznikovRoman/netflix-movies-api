@@ -35,11 +35,44 @@ jobs:
       matrix:
         python-version: ['3.10']
     services:
-      redis-api:
-        image: redis
+      redis-sentinel:
+        image: bitnami/redis-sentinel:6.2.7
+        env:
+          REDIS_MASTER_PASSWORD: secret
+          REDIS_MASTER_SET: redis_cluster
         ports:
-          - 6380:6379
-        options: --entrypoint redis-server
+          - "26379-26381:26379"
+        options: >-
+          --health-cmd "redis-cli -p 26379 ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: bitnami/redis:6.2.7
+        env:
+          REDIS_REPLICATION_MODE: master
+          REDIS_PASSWORD: secret
+        ports:
+          - 6379
+        options: >-
+          --health-cmd "redis-cli --pass secret ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis-slave:
+        image: bitnami/redis:6.2.7
+        env:
+          REDIS_REPLICATION_MODE: slave
+          REDIS_MASTER_HOST: redis
+          REDIS_MASTER_PASSWORD: secret
+          REDIS_PASSWORD: secret
+        ports:
+          - 6379
+        options: >-
+          --health-cmd "redis-cli --pass secret ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
       elasticsearch:
         image: elasticsearch:7.17.2
         env:
@@ -72,11 +105,13 @@ jobs:
           export NMA_SERVER_HOSTS=http://0.0.0.0:8001,http://127.0.0.1:8001,http://localhost:8001
           export NMA_PROJECT_NAME=netflix-movies-api
           export NMA_DEBUG=0
-          export NMA_REDIS_HOST=redis
-          export NMA_REDIS_PORT=6379
+          export NMA_REDIS_SENTINELS=redis-sentinel
+          export NMA_REDIS_MASTER_SET=redis_cluster
+          export NMA_REDIS_PASSWORD=secret
           export NMA_REDIS_DECODE_RESPONSES=1
           export NE_ES_HOST=elasticsearch
           export NE_ES_PORT=9200
+          export PYTEST_ADDOPTS="--ignore-glob=tests/functional/*"
           make test
 
   build-and-push-image:

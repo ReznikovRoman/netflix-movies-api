@@ -1,4 +1,5 @@
 import aioredis
+import aioredis.sentinel
 from elasticsearch import AsyncElasticsearch
 
 from fastapi import FastAPI
@@ -6,7 +7,7 @@ from fastapi.responses import ORJSONResponse
 
 from api.v1.urls import api_router
 from core.config import get_settings
-from db import elastic, redis
+from db import elastic, redis_sentinel
 
 
 settings = get_settings()
@@ -27,10 +28,9 @@ app = FastAPI(
 
 @app.on_event("startup")
 async def startup():
-    redis.redis = await aioredis.from_url(
-        url=f"redis://{settings.REDIS_HOST}:{settings.REDIS_PORT}",
-        encoding="utf-8",
-        decode_responses=settings.REDIS_DECODE_RESPONSES,
+    redis_sentinel.redis_sentinel = aioredis.sentinel.Sentinel(
+        sentinels=[(sentinel, 26379) for sentinel in settings.REDIS_SENTINELS],
+        socket_timeout=0.1,
     )
     elastic.es = AsyncElasticsearch(
         hosts=[
@@ -44,7 +44,8 @@ async def startup():
 
 @app.on_event("shutdown")
 async def shutdown():
-    await redis.redis.close()
+    for sentinel in redis_sentinel.redis_sentinel.sentinels:
+        await sentinel.close()
     await elastic.es.close()
 
 

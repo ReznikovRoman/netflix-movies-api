@@ -10,3 +10,5 @@ pytest-freezegun==0.4.2
 pytest-mock==3.7.0
 pytest-repeat==0.9.1
 pytest-xdist==2.5.0
+
+aiohttp==3.8.1
