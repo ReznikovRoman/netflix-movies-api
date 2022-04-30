@@ -14,23 +14,25 @@ class GenreService:
         self.genre_repository = genre_repository
 
     async def get_genre_by_id(self, genre_id: UUID) -> GenreDetail:
-        genre_key: str = f"genres:{str(genre_id)}"
-        genre = await self.genre_repository.get_item_from_cache(genre_key, GenreDetail)
+        key: str = f"genres:{str(genre_id)}"
+        genre = await self.genre_repository.get_item_from_cache(key, GenreDetail)
         if genre is not None:
             return genre
 
-        genre = await self.genre_repository.get_genre_from_elastic(genre_id)
-        await self.genre_repository.put_item_to_cache(genre_key, genre)
+        genre = await self.genre_repository.get_item_from_storage(genre_id, GenreDetail)
+
+        await self.genre_repository.put_item_to_cache(key, genre)
         return genre
 
     async def get_all_genres(self) -> list[GenreDetail]:
-        genres_key: str = "genres:list"
-        genres = await self.genre_repository.get_items_from_cache(genres_key, GenreDetail)
+        key: str = "genres:list"
+        genres = await self.genre_repository.get_items_from_cache(key, GenreDetail)
         if genres is not None:
             return genres
 
-        genres = await self.genre_repository.get_all_genres_from_elastic()
-        await self.genre_repository.put_items_to_redis(genres_key, genres)
+        genres = await self.genre_repository.get_all_items_from_storage(schema_class=GenreDetail)
+
+        await self.genre_repository.put_items_to_cache(key, genres)
         return genres
 
 

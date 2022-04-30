@@ -2,19 +2,12 @@ from functools import lru_cache
 from typing import ClassVar
 from uuid import UUID
 
-from elasticsearch import AsyncElasticsearch
-from pydantic import parse_obj_as
-
 from fastapi import Depends
 
 from db.cache import AsyncCache, get_redis_cache
-from db.elastic import get_elastic
-from schemas.films import FilmList
-from schemas.persons import PersonList, PersonShortDetail
-from schemas.roles import PersonFullDetail
+from db.storage import AsyncStorage, get_elastic_storage
 
 from .base import CacheRepositoryMixin, ElasticRepositoryMixin, ElasticSearchRepositoryMixin
-from .films import FilmRepository
 
 
 class PersonRepository(ElasticSearchRepositoryMixin, ElasticRepositoryMixin, CacheRepositoryMixin):
@@ -29,19 +22,12 @@ class PersonRepository(ElasticSearchRepositoryMixin, ElasticRepositoryMixin, Cac
     person_cache_ttl: ClassVar[int] = 5 * 60  # 5 минут
     hashed_params_key_length: ClassVar[int] = 10
 
-    def __init__(self, elastic: AsyncElasticsearch, cache: AsyncCache):
-        self.elastic = elastic
+    def __init__(self, storage: AsyncStorage, cache: AsyncCache):
+        self.storage = storage
         self.cache = cache
 
-    async def get_person_from_elastic(self, person_id: UUID) -> PersonShortDetail:
-        person_doc = await self.get_document_from_elastic(str(person_id))
-        return PersonShortDetail(**person_doc)
-
-    async def get_person_detailed_from_elastic(self, person_id: UUID) -> PersonFullDetail:
-        person_doc = await self.get_document_from_elastic(str(person_id))
-        return PersonFullDetail(**person_doc)
-
-    async def get_person_films_from_elastic(self, person_id: UUID) -> list[FilmList]:
+    @staticmethod
+    def prepare_films_search_request(person_id: UUID) -> dict:
         query = {
             "fields": [
                 "uuid",
@@ -73,35 +59,12 @@ class PersonRepository(ElasticSearchRepositoryMixin, ElasticRepositoryMixin, Cac
                 },
             },
         }
-        films_docs = await self.get_documents_from_elastic(index_name=FilmRepository.es_index_name, request_body=query)
-        return parse_obj_as(list[FilmList], films_docs)
-
-    async def get_all_persons_from_elastic(
-        self, page_size: int, page_number: int, query: str | None = None,
-    ) -> list[PersonList]:
-        request_body = self.prepare_search_request(
-            page_size=page_size,
-            page_number=page_number,
-            search_query=query,
-            search_fields=self.es_person_index_search_fields,
-        )
-        persons_docs = await self.get_documents_from_elastic(request_body=request_body)
-        return parse_obj_as(list[PersonList], persons_docs)
-
-    async def search_persons_in_elastic(self, page_size: int, page_number: int, query: str) -> list[PersonShortDetail]:
-        request_body = self.prepare_search_request(
-            page_size=page_size,
-            page_number=page_number,
-            search_query=query,
-            search_fields=self.es_person_index_search_fields,
-        )
-        persons_docs = await self.get_documents_from_elastic(request_body=request_body)
-        return parse_obj_as(list[PersonShortDetail], persons_docs)
+        return query
 
 
 @lru_cache()
 def get_person_repository(
         redis: AsyncCache = Depends(get_redis_cache),
-        elastic: AsyncElasticsearch = Depends(get_elastic),
+        storage: AsyncStorage = Depends(get_elastic_storage),
 ) -> PersonRepository:
-    return PersonRepository(elastic, redis)
+    return PersonRepository(storage, redis)

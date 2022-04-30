@@ -5,15 +5,14 @@ import hashlib
 from typing import TYPE_CHECKING, ClassVar
 
 import orjson
-from elasticsearch.exceptions import NotFoundError as ElasticNotFoundError
+from pydantic import parse_obj_as
 
-from common.exceptions import NotFoundError
 from common.types import ApiSchema, ApiSchemaClass
+from db.storage.base import AsyncStorage
 
 
 if TYPE_CHECKING:
-    from elasticsearch import AsyncElasticsearch
-
+    from common.types import Id
     from db.cache.base import AsyncCache
 
 
@@ -22,43 +21,27 @@ class ElasticRepositoryMixin:
 
     es_index_name: ClassVar[str]
 
-    elastic: AsyncElasticsearch
+    storage: AsyncStorage
 
-    async def get_document_from_elastic(self, document_id: str) -> dict:
-        try:
-            doc = await self.elastic.get(index=self.es_index_name, id=str(document_id))
-        except ElasticNotFoundError:
-            raise NotFoundError()
-        return doc["_source"]
+    async def get_item_from_storage(self, document_id: Id, schema_class: ApiSchemaClass) -> ApiSchema:
+        doc = await self.storage.get_by_id(instance_id=document_id, index=self.es_index_name)
+        return schema_class(**doc)
 
-    async def get_documents_from_elastic(
-        self, index_name: str | None = None, request_body: dict | None = None, **search_options,
-    ) -> list[dict]:
-        if request_body is None:
-            request_body = self.prepare_search_request()
+    async def search_items_in_storage(
+        self,
+        schema_class: ApiSchemaClass, query: dict,
+        index_name: str | None = None,
+        **search_options,
+    ) -> list[ApiSchema]:
         if index_name is None:
             index_name = self.es_index_name
 
-        docs = await self.elastic.search(
-            index=index_name,
-            body=request_body,
-            **search_options,
-        )
-        return self._prepare_documents_list(docs)
+        docs = await self.storage.search(query=query, index=index_name, **search_options)
+        return parse_obj_as(list[schema_class], docs)
 
-    def prepare_search_request(self, *args, **kwargs) -> dict:
-        request_body = {
-            "query": {"match_all": {}},
-        }
-        return request_body
-
-    @staticmethod
-    def _prepare_documents_list(docs: dict) -> list[dict]:
-        results = [
-            doc["_source"]
-            for doc in docs["hits"]["hits"]
-        ]
-        return results
+    async def get_all_items_from_storage(self, schema_class: ApiSchemaClass, **search_options) -> list[ApiSchema]:
+        docs = await self.storage.get_all(self.es_index_name, **search_options)
+        return parse_obj_as(list[schema_class], docs)
 
 
 class ElasticSearchRepositoryMixin:
@@ -118,7 +101,7 @@ class CacheRepositoryMixin:
         serialized_item = orjson.dumps(item.json())
         await self.cache.set(key, serialized_item, timeout=self.redis_ttl)
 
-    async def put_items_to_redis(self, key: str, items: list[ApiSchema]) -> None:
+    async def put_items_to_cache(self, key: str, items: list[ApiSchema]) -> None:
         serialized_items = orjson.dumps([item.json() for item in items])
         await self.cache.set(key, serialized_items, timeout=self.redis_ttl)
 

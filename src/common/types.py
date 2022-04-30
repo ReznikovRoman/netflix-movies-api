@@ -1,4 +1,5 @@
 from typing import Type, Union
+from uuid import UUID
 
 from schemas.films import FilmDetail, FilmList
 from schemas.genres import GenreDetail
@@ -24,3 +25,7 @@ ApiSchemaClass = Union[
 ]
 
 seconds = int
+
+Id = int | str | UUID
+
+Query = dict | str
