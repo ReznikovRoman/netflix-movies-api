@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Union
 
 import orjson
 from aiohttp import ClientSession
@@ -12,6 +12,8 @@ from .testdata.elastic import ES_DSNS, ES_GENRE_MAPPING, ES_INDEX_SETTINGS, ES_M
 if TYPE_CHECKING:
     from aiohttp import ClientResponse
 
+    APIResponse = Union[dict, str]
+
 
 elastic_schemas = {
     "movies": ES_MOVIES_MAPPING,
@@ -20,27 +22,29 @@ elastic_schemas = {
 }
 
 
-class ApiClient(ClientSession):
+class APIClient(ClientSession):
+    """Aiohttp клиент для тестов."""
+
     def __init__(self, base_url: str = "http://localhost:8001", *args, **kwargs):
         self.base_url = base_url
         super().__init__(base_url, *args, **kwargs)
 
-    async def get(self, *args, **kwargs):
+    async def get(self, *args, **kwargs) -> APIResponse:
         return await self._api_call("get", kwargs.get("expected_status_code", 200), *args, **kwargs)
 
-    async def post(self, *args, **kwargs):
+    async def post(self, *args, **kwargs) -> APIResponse:
         return await self._api_call("post", kwargs.get("expected_status_code", 201), *args, **kwargs)
 
-    async def put(self, *args, **kwargs):
+    async def put(self, *args, **kwargs) -> APIResponse:
         return await self._api_call("put", kwargs.get("expected_status_code", 200), *args, **kwargs)
 
-    async def patch(self, *args, **kwargs):
+    async def patch(self, *args, **kwargs) -> APIResponse:
         return await self._api_call("patch", kwargs.get("expected_status_code", 200), *args, **kwargs)
 
-    async def delete(self, *args, **kwargs):
+    async def delete(self, *args, **kwargs) -> APIResponse:
         return await self._api_call("delete", kwargs.get("expected_status_code", 204), *args, **kwargs)
 
-    async def _api_call(self, method, expected, *args, **kwargs):
+    async def _api_call(self, method: str, expected: int, *args, **kwargs) -> APIResponse:
         as_response = kwargs.pop("as_response", False)
 
         method = getattr(super(), method)
@@ -56,27 +60,25 @@ class ApiClient(ClientSession):
 
         return content
 
-    async def _decode(self, response):
+    async def _decode(self, response: ClientResponse) -> APIResponse:
         content = await response.content.read()
         decoded = content.decode("utf-8", errors="ignore")
         if self.is_json(response):
             return orjson.loads(decoded)
-        else:
-            return decoded
+        return decoded
 
     @staticmethod
     def is_json(response: ClientResponse) -> bool:
         if response.headers:
             return "json" in response.headers.get("content-type")
-
         return False
 
 
-def create_anon_client() -> ApiClient:
-    return ApiClient()
+def create_anon_client() -> APIClient:
+    return APIClient()
 
 
-async def setup_elastic():
+async def setup_elastic() -> None:
     elastic = AsyncElasticsearch(
         hosts=ES_DSNS,
         max_retries=30,
@@ -91,7 +93,7 @@ async def setup_elastic():
         await elastic.indices.create(index=index_name, body=body)
 
 
-async def teardown_elastic():
+async def teardown_elastic() -> None:
     elastic = AsyncElasticsearch(
         hosts=ES_DSNS,
         max_retries=30,
