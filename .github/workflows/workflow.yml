@@ -41,7 +41,7 @@ jobs:
           REDIS_MASTER_PASSWORD: secret
           REDIS_MASTER_SET: redis_cluster
         ports:
-          - "26379-26381:26379"
+          - "26379:26379"
         options: >-
           --health-cmd "redis-cli -p 26379 ping"
           --health-interval 10s
