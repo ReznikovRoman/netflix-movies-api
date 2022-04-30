@@ -7,8 +7,8 @@ services:
     depends_on:
       - redis
       - redis-slave
-    ports:
-      - "26379-26381:26379"
+    expose:
+      - 26379
 
   redis:
     image: bitnami/redis:6.2.7
