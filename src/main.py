@@ -30,7 +30,7 @@ app = FastAPI(
 async def startup():
     redis_sentinel.redis_sentinel = aioredis.sentinel.Sentinel(
         sentinels=[(sentinel, 26379) for sentinel in settings.REDIS_SENTINELS],
-        socket_timeout=0.1,
+        socket_timeout=0.5,
     )
     elastic.es = AsyncElasticsearch(
         hosts=[

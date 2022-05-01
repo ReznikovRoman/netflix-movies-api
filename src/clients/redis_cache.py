@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import random
 from typing import TYPE_CHECKING, Any
 
 import aioredis
@@ -30,18 +29,13 @@ class RedisCacheClient:
             return await redis_sentinel.redis_sentinel.master_for(self.service_name, **self.connection_options)
 
         try:
-            slaves = await redis_sentinel.redis_sentinel.discover_slaves(self.service_name)
-            host, port = random.choice(slaves)
-            password = self.connection_options.get("password", None)
-            connection_url = f"redis://{host}:{port}"
-            if password is not None:
-                connection_url = f"redis://:{password}@{host}:{port}"
-            return aioredis.from_url(connection_url, **self.connection_options)
-        except IndexError:
+            return await redis_sentinel.redis_sentinel.slave_for(self.service_name, **self.connection_options)
+        except (aioredis.sentinel.SlaveNotFoundError, aioredis.exceptions.TimeoutError):
             return await redis_sentinel.redis_sentinel.master_for(self.service_name, **self.connection_options)
 
     async def get_client(self, key: str | None = None, *, write: bool = False) -> Redis:
         client = await self._get_client(write)
+        await client.ping()
         return client
 
     async def get(self, key: str, default: Any | None = None) -> Any:
