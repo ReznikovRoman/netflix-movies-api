@@ -35,6 +35,9 @@ class RedisCacheClient:
 
     async def get_client(self, key: str | None = None, *, write: bool = False) -> Redis:
         client = await self._get_client(write)
+        # TODO: отрефакторить:
+        #  1. Добавить методы pre_init_client, post_init_client
+        #  2. Добавить backoff на TimeoutError, ConnectionError, SlaveNotFoundError
         await client.ping()
         return client
 
