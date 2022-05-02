@@ -30,6 +30,7 @@ class Settings(BaseSettings):
     REDIS_MASTER_SET: str
     REDIS_PASSWORD: str
     REDIS_DECODE_RESPONSES: bool = True
+    REDIS_RETRY_ON_TIMEOUT: bool = True
 
     # Elastic
     ES_HOST: str = Field(env="NE_ES_HOST")

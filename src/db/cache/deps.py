@@ -19,5 +19,6 @@ def get_redis_cache() -> RedisCache:
         params={
             "password": settings.REDIS_PASSWORD,
             "decode_responses": settings.REDIS_DECODE_RESPONSES,
+            "retry_on_timeout": settings.REDIS_RETRY_ON_TIMEOUT,
         },
     )
