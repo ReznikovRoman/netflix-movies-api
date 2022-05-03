@@ -1,9 +1,10 @@
 services:
   redis-sentinel:
     image: bitnami/redis-sentinel:6.2.7
+    restart: always
     environment:
-      - REDIS_MASTER_PASSWORD=${NMA_REDIS_PASSWORD}
       - REDIS_MASTER_SET=${NMA_REDIS_MASTER_SET}
+      - ALLOW_EMPTY_PASSWORD=yes
     depends_on:
       - redis
       - redis-slave
@@ -12,19 +13,20 @@ services:
 
   redis:
     image: bitnami/redis:6.2.7
+    restart: always
     environment:
       - REDIS_REPLICATION_MODE=master
-      - REDIS_PASSWORD=${NMA_REDIS_PASSWORD}
+      - ALLOW_EMPTY_PASSWORD=yes
     ports:
       - 6379
 
   redis-slave:
     image: bitnami/redis:6.2.7
+    restart: always
     environment:
       - REDIS_REPLICATION_MODE=slave
       - REDIS_MASTER_HOST=redis
-      - REDIS_MASTER_PASSWORD=${NMA_REDIS_PASSWORD}
-      - REDIS_PASSWORD=${NMA_REDIS_PASSWORD}
+      - ALLOW_EMPTY_PASSWORD=yes
     ports:
       - 6379
     depends_on:
@@ -40,14 +42,42 @@ services:
 
   server:
     restart: always
+    image: movies-api-yandex
     build:
       context: ../../.
+      dockerfile: Dockerfile
     env_file:
       - $ENV
     ports:
       - "8001:8001"
     volumes:
       - ./../../src:/app/src
-    command: python -m uvicorn main:app --reload --host 0.0.0.0 --port 8001
+      - .:/app/tests/functional
+    command: >
+      sh -c "
+      cd /app/src/ &&
+      python3.10 -m uvicorn main:app --reload --host 0.0.0.0 --port 8001
+      "
     depends_on:
       - redis
+
+  test:
+    restart: on-failure
+    image: movies-api-yandex
+    env_file:
+      - $ENV
+    volumes:
+      - ./../../src:/app/src
+      - .:/app/tests/functional
+    command: >
+      sh -c "cd /app
+      && python /app/tests/functional/utils/wait_for_elastic.py
+      && python /app/tests/functional/utils/wait_for_redis_cache.py
+      && python -m pytest tests/functional
+      "
+    depends_on:
+      - redis-sentinel
+      - redis
+      - redis-slave
+      - server
+      - elasticsearch
