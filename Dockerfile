@@ -29,14 +29,11 @@ FROM python:3.10-alpine
 ENV PYTHONUNBUFFERED 1
 ENV PYTHONPATH /app
 
-# Set working directory
-WORKDIR /app/src
+# Install system dependencies
+RUN apk add --no-cache libstdc++ build-base
 
 # Copy project dependencies
 COPY --from=builder /usr/local/lib/python3.10/site-packages /usr/local/lib/python3.10/site-packages
-
-# Install system dependencies
-RUN apk add --no-cache libstdc++ build-base
 
 # Copy project files
 COPY . .
