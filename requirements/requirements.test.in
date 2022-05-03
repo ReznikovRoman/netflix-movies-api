@@ -1,6 +1,6 @@
 -c requirements.txt
 
-pytest==7.1.1
+pytest==7.1.2
 pytest-asyncio==0.18.3
 pytest-httpx==0.20.0
 pytest-randomly==3.11.0
