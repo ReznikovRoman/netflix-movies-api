@@ -150,12 +150,19 @@ NMA_REDIS_SENTINELS=redis-sentinel
 NMA_REDIS_MASTER_SET=redis_cluster
 NMA_REDIS_PASSWORD=
 NMA_REDIS_DECODE_RESPONSES=1
+NMA_REDIS_RETRY_ON_TIMEOUT=1
+# Tests
+TEST_CLIENT_BASE_URL=http://server:8001
 ```
 
 Запуск функциональных тестов:
 ```shell
-cd ./tests/functional && docker-compose up
-make tf
+cd ./tests/functional && docker-compose up test
+```
+
+Или через рецепт Makefile:
+```shell
+make dtf
 ```
 
 ### Code style:
