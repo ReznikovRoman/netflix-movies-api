@@ -52,6 +52,7 @@ class APIClient(ClientSession):
         return await self._api_call("delete", kwargs.get("expected_status_code", 204), *args, **kwargs)
 
     async def _api_call(self, method: str, expected: int, *args, **kwargs) -> APIResponse:
+        kwargs.pop("expected_status_code", None)
         as_response = kwargs.pop("as_response", False)
 
         method = getattr(super(), method)
@@ -131,5 +132,6 @@ async def flush_redis_cache() -> None:
     master: Redis = await sentinel.master_for(
         service_name=settings.REDIS_MASTER_SET,
         decode_responses=settings.REDIS_DECODE_RESPONSES,
+        password=settings.REDIS_PASSWORD,
     )
     await master.flushdb()
