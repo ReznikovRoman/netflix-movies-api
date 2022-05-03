@@ -13,3 +13,8 @@ pytest-repeat==0.9.1
 pytest-xdist==2.5.0
 
 aiohttp==3.8.1
+
+mixer==7.2.2
+faker==12.0.1
+requests-mock==1.9.3
+pydantic-factories==1.2.7

@@ -25,6 +25,7 @@ async def wait_for_redis() -> None:
     master = await sentinel.master_for(
         service_name=settings.REDIS_MASTER_SET,
         decode_responses=settings.REDIS_DECODE_RESPONSES,
+        password=settings.REDIS_PASSWORD,
     )
     await master.ping()
 

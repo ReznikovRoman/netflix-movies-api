@@ -4,7 +4,7 @@ services:
     restart: always
     environment:
       - REDIS_MASTER_SET=${NMA_REDIS_MASTER_SET}
-      - ALLOW_EMPTY_PASSWORD=yes
+      - REDIS_MASTER_PASSWORD=${NMA_REDIS_PASSWORD}
     depends_on:
       - redis
       - redis-slave
@@ -16,7 +16,7 @@ services:
     restart: always
     environment:
       - REDIS_REPLICATION_MODE=master
-      - ALLOW_EMPTY_PASSWORD=yes
+      - REDIS_PASSWORD=${NMA_REDIS_PASSWORD}
     ports:
       - 6379
 
@@ -26,7 +26,8 @@ services:
     environment:
       - REDIS_REPLICATION_MODE=slave
       - REDIS_MASTER_HOST=redis
-      - ALLOW_EMPTY_PASSWORD=yes
+      - REDIS_MASTER_PASSWORD=${NMA_REDIS_PASSWORD}
+      - REDIS_PASSWORD=${NMA_REDIS_PASSWORD}
     ports:
       - 6379
     depends_on:
@@ -68,6 +69,7 @@ services:
       - $ENV
     volumes:
       - ./../../src:/app/src
+      - ./../../tests:/app/tests
       - .:/app/tests/functional
     command: >
       sh -c "cd /app

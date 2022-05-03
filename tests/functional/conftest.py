@@ -39,7 +39,7 @@ def event_loop() -> AbstractEventLoop:
 
 
 @pytest.fixture(scope="session")
-async def api_client() -> APIClient:
+async def client() -> APIClient:
     anon_client = create_anon_client()
     yield anon_client
     await anon_client.close()
