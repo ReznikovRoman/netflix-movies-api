@@ -20,6 +20,10 @@ test:
 tf:
 	pytest $(FUNCTIONAL_TESTS_DIR)
 
+.PHONY: dtf
+dtf:
+	cd $(FUNCTIONAL_TESTS_DIR) && docker-compose up test
+
 .PHONY: check
 check: lint test
 
