@@ -1,49 +1,52 @@
-import asyncio
-from dataclasses import dataclass
-from typing import Optional
+from __future__ import annotations
 
-import aiohttp
+import asyncio
+from typing import TYPE_CHECKING
+
 import pytest
-from multidict import CIMultiDictProxy
+
+from .settings import get_settings
+from .testlib import create_anon_client, flush_redis_cache, setup_elastic, teardown_elastic
+
+
+settings = get_settings()
+
+
+if TYPE_CHECKING:
+    from asyncio import AbstractEventLoop
+
+    from elasticsearch import AsyncElasticsearch
+
+    from .testlib import APIClient
 
 
 pytestmark = [pytest.mark.asyncio]
 
 
-SERVICE_URL = "http://localhost:8001"
-
-
-@dataclass
-class HTTPResponse:
-    body: dict
-    headers: CIMultiDictProxy[str]
-    status: int
+@pytest.fixture(autouse=True)
+async def _autoflush_cache() -> None:
+    try:
+        yield
+    finally:
+        await flush_redis_cache()
 
 
 @pytest.fixture(scope="session")
-def event_loop():
+def event_loop() -> AbstractEventLoop:
     loop = asyncio.get_event_loop_policy().new_event_loop()
     yield loop
     loop.close()
 
 
 @pytest.fixture(scope="session")
-async def session():
-    session = aiohttp.ClientSession()
-    yield session
-    await session.close()
+async def api_client() -> APIClient:
+    anon_client = create_anon_client()
+    yield anon_client
+    await anon_client.close()
 
 
 @pytest.fixture
-def make_get_request(session):
-    async def inner(method: str, params: Optional[dict] = None) -> HTTPResponse:
-        params = params or {}
-        method = method.removeprefix("/")
-        url = f"{SERVICE_URL}/{method}"
-        async with session.get(url, params=params) as response:
-            return HTTPResponse(
-                body=await response.json(),
-                headers=response.headers,
-                status=response.status,
-            )
-    return inner
+async def elastic() -> AsyncElasticsearch:
+    client = await setup_elastic()
+    yield client
+    await teardown_elastic()

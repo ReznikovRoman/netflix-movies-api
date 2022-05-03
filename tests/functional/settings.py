@@ -1,8 +1,7 @@
 from functools import lru_cache
 from typing import Union
 
-from pydantic import AnyHttpUrl, Field, validator
-from pydantic.env_settings import BaseSettings
+from pydantic import BaseSettings, Field, validator
 
 
 class EnvConfig(BaseSettings.Config):
@@ -14,23 +13,17 @@ class EnvConfig(BaseSettings.Config):
         return super().prepare_field(field)
 
 
-class Settings(BaseSettings):
-    """Настройки проекта."""
+class Test(BaseSettings):
+    """Настройки для функциональных тестов."""
 
-    # Project
-    API_V1_STR: str = "/api/v1"
-    SERVER_NAME: str
-    SERVER_HOSTS: Union[str, list[AnyHttpUrl]]
-    PROJECT_NAME: str
-    DEBUG: bool = False
-    PROJECT_BASE_URL: str
+    # Tests
+    CLIENT_BASE_URL: str = Field(env="TEST_CLIENT_BASE_URL")
 
     # Redis
     REDIS_SENTINELS: Union[str, list[str]]
     REDIS_MASTER_SET: str
-    REDIS_PASSWORD: str
+    REDIS_PASSWORD: str | None = None
     REDIS_DECODE_RESPONSES: bool = True
-    REDIS_RETRY_ON_TIMEOUT: bool = True
 
     # Elastic
     ES_HOST: str = Field(env="NE_ES_HOST")
@@ -39,12 +32,7 @@ class Settings(BaseSettings):
     class Config(EnvConfig):
         env_prefix = "NMA_"
         case_sensitive = True
-
-    @validator("SERVER_HOSTS", pre=True)
-    def _assemble_server_hosts(cls, server_hosts):
-        if isinstance(server_hosts, str):
-            return [item.strip() for item in server_hosts.split(",")]
-        return server_hosts
+        env_file = ".env"
 
     @validator("REDIS_SENTINELS", pre=True)
     def _assemble_redis_sentinels(cls, redis_sentinels):
@@ -54,5 +42,5 @@ class Settings(BaseSettings):
 
 
 @lru_cache()
-def get_settings() -> "Settings":
-    return Settings()
+def get_settings() -> "Test":
+    return Test()

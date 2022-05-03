@@ -17,6 +17,7 @@ venv*/
 # local configurations and overrides
 drafts/
 requirements.local.*
+tests/functional/src
 
 # Log files
 *.log

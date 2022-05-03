@@ -79,6 +79,7 @@ NMA_REDIS_SENTINELS=redis-sentinel
 NMA_REDIS_MASTER_SET=redis_cluster
 NMA_REDIS_PASSWORD=
 NMA_REDIS_DECODE_RESPONSES=1
+NMA_REDIS_RETRY_ON_TIMEOUT=1
 ```
 
 ### Запуск проекта:
@@ -114,6 +115,54 @@ make compile-requirements
 -c requirements.txt
 
 ipython
+```
+
+### Тесты
+Запуск тестов (всех, кроме функциональных) с экспортом переменных окружения из `.env` файла:
+```shell
+export $(echo $(cat .env | sed 's/#.*//g'| xargs) | envsubst) && make test
+```
+
+Для функциональных тестов нужно создать файл `.env` в папке ./tests/functional
+
+**Пример `.env`:**
+```dotenv
+ENV=.env
+
+# Python
+PYTHONUNBUFFERED=1
+
+# Netflix ETL
+# Elasticsearch
+NE_ES_HOST=elasticsearch
+NE_ES_PORT=9200
+
+# Netflix Movies API
+# Project
+NMA_PROJECT_BASE_URL=http://localhost:8001
+NMA_API_V1_STR=/api/v1
+NMA_SERVER_NAME=localhost
+NMA_SERVER_HOSTS=http://localhost:8001,http://127.0.0.1:8001
+NMA_PROJECT_NAME=netflix
+NMA_DEBUG=1
+# Redis
+NMA_REDIS_SENTINELS=redis-sentinel
+NMA_REDIS_MASTER_SET=redis_cluster
+NMA_REDIS_PASSWORD=
+NMA_REDIS_DECODE_RESPONSES=1
+NMA_REDIS_RETRY_ON_TIMEOUT=1
+# Tests
+TEST_CLIENT_BASE_URL=http://server:8001
+```
+
+Запуск функциональных тестов:
+```shell
+cd ./tests/functional && docker-compose up test
+```
+
+Или через рецепт Makefile:
+```shell
+make dtf
 ```
 
 ### Code style:

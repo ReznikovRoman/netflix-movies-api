@@ -109,6 +109,7 @@ jobs:
           export NMA_REDIS_MASTER_SET=redis_cluster
           export NMA_REDIS_PASSWORD=secret
           export NMA_REDIS_DECODE_RESPONSES=1
+          export NMA_REDIS_RETRY_ON_TIMEOUT=1
           export NE_ES_HOST=elasticsearch
           export NE_ES_PORT=9200
           export PYTEST_ADDOPTS="--ignore-glob=tests/functional/*"

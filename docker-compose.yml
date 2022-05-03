@@ -34,6 +34,20 @@ services:
     volumes:
       - redis_slave_data:/data
 
+  redis-slave-2:
+    image: bitnami/redis:6.2.7
+    environment:
+      - REDIS_REPLICATION_MODE=slave
+      - REDIS_MASTER_HOST=redis
+      - REDIS_MASTER_PASSWORD=${NMA_REDIS_PASSWORD}
+      - REDIS_PASSWORD=${NMA_REDIS_PASSWORD}
+    ports:
+      - 6379
+    depends_on:
+      - redis
+    volumes:
+      - redis_slave_data:/data
+
   server:
     restart: always
     build:
@@ -44,7 +58,9 @@ services:
       - "8001:8001"
     volumes:
       - .:/app
-    command: python -m uvicorn main:app --reload --host 0.0.0.0 --port 8001
+    command: >
+      sh -c "cd /app/src
+      && python -m uvicorn main:app --reload --host 0.0.0.0 --port 8001"
     depends_on:
       - redis
 
