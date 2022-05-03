@@ -1,7 +1,9 @@
-orjson==3.6.7
+orjson==3.6.8
 pydantic==1.9.0
 requests==2.27.1
 httpx==0.22.0
+python-dotenv==0.20.0
+backoff==2.0.1
 
 fastapi==0.75.2
 
