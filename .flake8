@@ -18,3 +18,4 @@ per-file-ignores =
     # First argument of a method should be named 'self'
     */schemas/**.py:N805
     */core/**.py:N805
+    ./tests/functional/settings.py:N805
