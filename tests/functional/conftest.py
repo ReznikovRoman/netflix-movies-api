@@ -4,19 +4,31 @@ import asyncio
 from typing import TYPE_CHECKING
 
 import pytest
-from elasticsearch import AsyncElasticsearch
 
-from .testdata.elastic import ES_DSNS
-from .testlib import create_anon_client, setup_elastic, teardown_elastic
+from .settings import get_settings
+from .testlib import create_anon_client, flush_redis_cache, setup_elastic, teardown_elastic
+
+
+settings = get_settings()
 
 
 if TYPE_CHECKING:
     from asyncio import AbstractEventLoop
 
+    from elasticsearch import AsyncElasticsearch
+
     from .testlib import APIClient
 
 
 pytestmark = [pytest.mark.asyncio]
+
+
+@pytest.fixture(autouse=True)
+async def _autoflush_cache() -> None:
+    try:
+        yield
+    finally:
+        await flush_redis_cache()
 
 
 @pytest.fixture(scope="session")
@@ -35,11 +47,6 @@ async def api_client() -> APIClient:
 
 @pytest.fixture
 async def elastic() -> AsyncElasticsearch:
-    await setup_elastic()
-    yield AsyncElasticsearch(
-        hosts=ES_DSNS,
-        max_retries=30,
-        retry_on_timeout=True,
-        request_timeout=30,
-    )
+    client = await setup_elastic()
+    yield client
     await teardown_elastic()

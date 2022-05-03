@@ -1,10 +1,3 @@
-from typing import Any
-
-
-ES_DSNS: list[dict[str, Any]] = [
-    {"host": "localhost", "port": "9200"},
-]
-
 ES_INDEX_SETTINGS = {
     "refresh_interval": "1s",
     "analysis": {

@@ -2,17 +2,24 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Union
 
+import aioredis.sentinel
+import backoff
+import elasticsearch
 import orjson
 from aiohttp import ClientSession
-from elasticsearch import AsyncElasticsearch
 
-from .testdata.elastic import ES_DSNS, ES_GENRE_MAPPING, ES_INDEX_SETTINGS, ES_MOVIES_MAPPING, ES_PERSON_MAPPING
+from .settings import get_settings
+from .testdata.elastic import ES_GENRE_MAPPING, ES_INDEX_SETTINGS, ES_MOVIES_MAPPING, ES_PERSON_MAPPING
 
 
 if TYPE_CHECKING:
     from aiohttp import ClientResponse
+    from aioredis import Redis
 
     APIResponse = Union[dict, str]
+
+
+settings = get_settings()
 
 
 elastic_schemas = {
@@ -75,12 +82,20 @@ class APIClient(ClientSession):
 
 
 def create_anon_client() -> APIClient:
-    return APIClient()
+    return APIClient(base_url=settings.CLIENT_BASE_URL)
 
 
-async def setup_elastic() -> None:
-    elastic = AsyncElasticsearch(
-        hosts=ES_DSNS,
+@backoff.on_exception(
+    wait_gen=backoff.expo,
+    exception=elasticsearch.exceptions.ConnectionError,
+    max_tries=5,
+    max_time=2 * 60,
+)
+async def setup_elastic() -> elasticsearch.AsyncElasticsearch:
+    elastic = elasticsearch.AsyncElasticsearch(
+        hosts=[
+            {"host": settings.ES_HOST, "port": settings.ES_PORT},
+        ],
         max_retries=30,
         retry_on_timeout=True,
         request_timeout=30,
@@ -91,11 +106,14 @@ async def setup_elastic() -> None:
             "mappings": mapping,
         }
         await elastic.indices.create(index=index_name, body=body)
+    return elastic
 
 
 async def teardown_elastic() -> None:
-    elastic = AsyncElasticsearch(
-        hosts=ES_DSNS,
+    elastic = elasticsearch.AsyncElasticsearch(
+        hosts=[
+            {"host": settings.ES_HOST, "port": settings.ES_PORT},
+        ],
         max_retries=30,
         retry_on_timeout=True,
         request_timeout=30,
@@ -103,3 +121,15 @@ async def teardown_elastic() -> None:
     for index_name in elastic_schemas.keys():
         await elastic.indices.delete(index=index_name)
     await elastic.close()
+
+
+async def flush_redis_cache() -> None:
+    sentinel = aioredis.sentinel.Sentinel(
+        sentinels=[(sentinel, 26379) for sentinel in settings.REDIS_SENTINELS],
+        socket_timeout=0.5,
+    )
+    master: Redis = await sentinel.master_for(
+        service_name=settings.REDIS_MASTER_SET,
+        decode_responses=settings.REDIS_DECODE_RESPONSES,
+    )
+    await master.flushdb()
