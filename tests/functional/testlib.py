@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING, Any, Union
 
 import aioredis.sentinel
 import backoff
@@ -16,7 +16,7 @@ if TYPE_CHECKING:
     from aiohttp import ClientResponse
     from aioredis import Redis
 
-    APIResponse = Union[dict, str]
+    APIResponse = Union[dict, str, list[dict], dict[str, Any]]
 
 
 settings = get_settings()

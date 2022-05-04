@@ -16,10 +16,40 @@ class BaseClientTest:
     """Базовый тестовый класс."""
 
     client: APIClient
+    endpoint: str
 
     @pytest.fixture(autouse=True)
     def _setup(self, client):
         self.client: APIClient = client
+        self.endpoint = self.endpoint.removesuffix("/")
+
+
+class PaginationTestMixin:
+    """Миксин для тестов на пагинацию."""
+
+    factory_name: str
+
+    @pytest.fixture
+    def items(self, request, event_loop):
+        # проблема с асинхронными фикстурами
+        # ссылка на issue: https://github.com/pytest-dev/pytest-asyncio/issues/112#issuecomment-746031505
+        request.getfixturevalue(self.factory_name)
+
+    async def test_pagination(self, items):
+        """Пагинация объектов работает корректно."""
+        page_size = 3
+
+        first_page = await self.client.get(f"{self.endpoint}/?page[size]={page_size}")
+        exact_page = await self.client.get(f"{self.endpoint}/?page[size]={page_size}&page[number]=2")
+
+        assert len(first_page) == 3, first_page
+        assert len(exact_page) > 0
+
+    async def test_empty_response(self):
+        """Если объектов нет в основной БД, то должен выводиться пустой список."""
+        got = await self.client.get(self.endpoint)
+
+        assert len(got) == 0
 
 
 class NotFoundTestMixin:
