@@ -9,7 +9,7 @@ from httpx import AsyncClient
 if TYPE_CHECKING:
     from httpx import Response
 
-    APIResponse = Union[dict, str]
+    APIResponse = Union[dict, str, list[dict]]
 
 
 class APIClient(AsyncClient):
