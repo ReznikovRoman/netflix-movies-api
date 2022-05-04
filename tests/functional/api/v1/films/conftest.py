@@ -24,7 +24,7 @@ def genre_uuid():
 @pytest.fixture
 def film_dto(model_factory, film_uuid, genre_uuid) -> FilmDetail:
     genres = [GenreDetail(name="Test", uuid=genre_uuid)]
-    return model_factory.create_factory(FilmDetail).build(uuid=film_uuid, genre=genres)
+    return model_factory.create_factory(FilmDetail).build(uuid=film_uuid, title="CustomFilm", genre=genres)
 
 
 @pytest.fixture

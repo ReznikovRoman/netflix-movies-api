@@ -4,21 +4,25 @@ import pytest
 
 from tests.functional.utils.helpers import find_object_by_value
 
-from ..base import BaseClientTest, PaginationTestMixin
+from ..base import BaseClientTest, CacheTestMixin, PaginationTestMixin
 
 
 pytestmark = [pytest.mark.asyncio]
 
 
-class TestFilmSearch(PaginationTestMixin, BaseClientTest):
+class TestFilmSearch(CacheTestMixin, PaginationTestMixin, BaseClientTest):
     """Тестирование поиска по фильмам."""
 
     endpoint = "/api/v1/films/search/"
 
-    factory_name = "films_es"
+    pagination_factory_name = "films_es"
+    pagination_request_params = {"query": "Title"}
+    empty_request_params = {"query": "XXX"}
 
-    pagination_response_params = {"query": "Title"}
-    empty_response_params = {"query": "XXX"}
+    cache_field_name = "title"
+    cache_es_fixture_name = "film_es"
+    cache_dto_fixture_name = "film_dto"
+    cache_request_params = {"query": "CustomFilm"}
 
     async def test_film_search_ok(self, films_es, film_dto):
         """Поиск по фильмам работает корректно."""
@@ -46,21 +50,6 @@ class TestFilmSearch(PaginationTestMixin, BaseClientTest):
 
         assert len(got) == 4
         assert got[0]["uuid"] == expected_uuid
-
-    async def test_film_search_from_cache(self, elastic, film_es, film_dto):
-        """Данные о найденных фильмах должны сохраняться в кэше после запроса в основную БД."""
-        new_title = "XXX"
-        body = film_dto.dict()
-        body["title"] = new_title
-        request_url = f"/api/v1/films/search/?query={film_dto.title}"
-
-        from_source = await self.client.get(request_url)
-        assert from_source[0]["title"] == film_dto.title
-
-        await elastic.index(index="movies", doc_type="_doc", id=str(film_dto.uuid), body=body, refresh="wait_for")
-        from_cache = await self.client.get(request_url)
-        assert from_cache[0]["title"] != new_title
-        assert from_cache[0]["title"] == film_dto.title
 
     async def test_film_search_from_cache_with_params(self, elastic, films_es, films_dto):
         """Кэширование найденных фильмов корректно работает и в случае параметров в запросе."""

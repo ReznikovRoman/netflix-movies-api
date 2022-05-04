@@ -4,18 +4,22 @@ import pytest
 
 from tests.functional.utils.helpers import find_object_by_value
 
-from ..base import BaseClientTest, PaginationTestMixin
+from ..base import BaseClientTest, CacheTestMixin, PaginationTestMixin
 
 
 pytestmark = [pytest.mark.asyncio]
 
 
-class TestFilmList(PaginationTestMixin, BaseClientTest):
+class TestFilmList(CacheTestMixin, PaginationTestMixin, BaseClientTest):
     """Тестирование получения списка фильмов."""
 
     endpoint = "/api/v1/films/"
 
-    factory_name = "films_es"
+    pagination_factory_name = "films_es"
+
+    cache_field_name = "title"
+    cache_es_fixture_name = "film_es"
+    cache_dto_fixture_name = "film_dto"
 
     async def test_film_list_ok(self, films_es, films_dto):
         """Получение списка фильмов работает корректно."""
@@ -38,20 +42,6 @@ class TestFilmList(PaginationTestMixin, BaseClientTest):
         assert len(got) == 1
         assert got[0]["uuid"] == str(film_dto.uuid)
         assert got[0]["title"] == film_dto.title
-
-    async def test_film_list_from_cache(self, elastic, film_es, film_dto):
-        """Данные о списке фильмов должны сохраняться в кэше после запроса в основную БД."""
-        new_title = "XXX"
-        body = film_dto.dict()
-        body["title"] = new_title
-
-        from_source = await self.client.get("/api/v1/films")
-        assert from_source[0]["title"] == film_dto.title
-
-        await elastic.index(index="movies", doc_type="_doc", id=str(film_dto.uuid), body=body, refresh="wait_for")
-        from_cache = await self.client.get("/api/v1/films")
-        assert from_cache[0]["title"] != new_title
-        assert from_cache[0]["title"] == film_dto.title
 
     async def test_film_list_from_cache_with_params(self, elastic, films_es, films_dto):
         """Кэширование списка фильмов корректно работает и в случае параметров в запросе."""
