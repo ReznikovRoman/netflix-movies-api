@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Any
 
 import aioredis
 import aioredis.sentinel
+import backoff
 from aioredis import Redis
 
 from core.config import get_settings
@@ -34,11 +35,9 @@ class RedisCacheClient:
             return await redis_sentinel.redis_sentinel.master_for(self.service_name, **self.connection_options)
 
     async def get_client(self, key: str | None = None, *, write: bool = False) -> Redis:
+        await self.pre_init_client()
         client = await self._get_client(write)
-        # TODO: отрефакторить:
-        #  1. Добавить методы pre_init_client, post_init_client
-        #  2. Добавить backoff на TimeoutError, ConnectionError, SlaveNotFoundError
-        await client.ping()
+        await self.post_init_client(client)
         return client
 
     async def get(self, key: str, default: Any | None = None) -> Any:
@@ -51,3 +50,28 @@ class RedisCacheClient:
         if timeout is not None:
             return await client.set(key, data, ex=timeout)
         return await client.set(key, data)
+
+    async def pre_init_client(self, *args, **kwargs):
+        """Вызывается до начала инициализации клиента Redis."""
+
+    @backoff.on_exception(
+        wait_gen=backoff.expo,
+        exception=aioredis.exceptions.TimeoutError,
+        max_tries=3,
+        max_time=10,
+    )
+    @backoff.on_exception(
+        wait_gen=backoff.expo,
+        exception=aioredis.exceptions.ConnectionError,
+        max_tries=3,
+        max_time=10,
+    )
+    @backoff.on_exception(
+        wait_gen=backoff.expo,
+        exception=aioredis.sentinel.SlaveNotFoundError,
+        max_tries=3,
+        max_time=10,
+    )
+    async def post_init_client(self, client: Redis, *args, **kwargs) -> None:
+        """Вызывается после инициализации клиента Redis."""
+        await client.ping()
