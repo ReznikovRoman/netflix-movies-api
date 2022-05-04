@@ -45,6 +45,7 @@ class TestFilmList(CacheTestMixin, PaginationTestMixin, BaseClientTest):
 
     async def test_film_list_from_cache_with_params(self, elastic, films_es, films_dto):
         """Кэширование списка фильмов корректно работает и в случае параметров в запросе."""
+        # TODO: добавить миксин CacheWithParamsTestMixin (сделать по аналогии с CacheTestMixin)
         sort_field = "imdb_rating"
         query = {"query": {"match_all": {}}}
         expected_es = await elastic.search(index="movies", body=query, sort=f"{sort_field}:desc")

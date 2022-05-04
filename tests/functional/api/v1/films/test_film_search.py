@@ -53,6 +53,7 @@ class TestFilmSearch(CacheTestMixin, PaginationTestMixin, BaseClientTest):
 
     async def test_film_search_from_cache_with_params(self, elastic, films_es, films_dto):
         """Кэширование найденных фильмов корректно работает и в случае параметров в запросе."""
+        # TODO: добавить миксин CacheWithParamsTestMixin (сделать по аналогии с CacheTestMixin)
         sort_field = "imdb_rating"
         search_fields = ["title", "description", "genres_names", "actors_names", "directors_names", "writers_names"]
         search_query = "Title"
