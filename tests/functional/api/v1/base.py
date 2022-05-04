@@ -29,6 +29,16 @@ class PaginationTestMixin:
 
     factory_name: str
 
+    pagination_response_params: dict | None = None
+    empty_response_params: dict | None = None
+
+    @pytest.fixture(autouse=True)
+    def _setup_pagination_params(self, client):
+        if self.pagination_response_params is None:
+            self.pagination_response_params = {}
+        if self.empty_response_params is None:
+            self.empty_response_params = {}
+
     @pytest.fixture
     def items(self, request, event_loop):
         # проблема с асинхронными фикстурами
@@ -39,15 +49,17 @@ class PaginationTestMixin:
         """Пагинация объектов работает корректно."""
         page_size = 3
 
-        first_page = await self.client.get(f"{self.endpoint}/?page[size]={page_size}")
-        exact_page = await self.client.get(f"{self.endpoint}/?page[size]={page_size}&page[number]=2")
+        first_page = await self.client.get(
+            f"{self.endpoint}", params={"page[size]": page_size, **self.pagination_response_params})
+        exact_page = await self.client.get(
+            f"{self.endpoint}", params={"page[size]": page_size, "page[number]": 2, **self.pagination_response_params})
 
         assert len(first_page) == 3, first_page
         assert len(exact_page) > 0
 
     async def test_empty_response(self):
         """Если объектов нет в основной БД, то должен выводиться пустой список."""
-        got = await self.client.get(self.endpoint)
+        got = await self.client.get(self.endpoint, params=self.empty_response_params)
 
         assert len(got) == 0
 
