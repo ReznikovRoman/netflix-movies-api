@@ -10,6 +10,8 @@ pytestmark = [pytest.mark.asyncio]
 class TestFilmRetrieve(NotFoundTestMixin, BaseClientTest):
     """Тестирование получения фильма по UUID."""
 
+    endpoint = "/api/v1/films/{uuid}"
+
     not_found_endpoint = f"/api/v1/films/{FILM_UUID}"
 
     async def test_film_ok(self, film_es, film_dto):
