@@ -1,3 +1,5 @@
+import random
+
 import pytest
 
 from schemas.films import FilmDetail
@@ -25,13 +27,14 @@ def film_dto(model_factory, film_uuid, genre_uuid) -> FilmDetail:
 
 
 @pytest.fixture
-async def film_es(elastic, film_dto):
-    await add_film_document_to_elastic(elastic, film_dto)
+def films_dto(model_factory, genre_uuid) -> list[FilmDetail]:
+    names = [f"Title#{film_index}" for film_index in range(4)]
+    return model_factory.create_factory(FilmDetail, title=lambda: random.choice(names)).batch(size=4)
 
 
 @pytest.fixture
-def films_dto(model_factory, genre_uuid) -> list[FilmDetail]:
-    return model_factory.create_factory(FilmDetail).batch(size=4)
+async def film_es(elastic, film_dto):
+    await add_film_document_to_elastic(elastic, film_dto)
 
 
 @pytest.fixture
