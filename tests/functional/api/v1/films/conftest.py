@@ -4,6 +4,7 @@ import pytest
 
 from schemas.films import FilmDetail
 from schemas.genres import GenreDetail
+from tests.functional.api.v1.films.constants import FILM_UUID, GENRE_UUID
 from tests.functional.utils.helpers import add_film_document_to_elastic
 
 
@@ -12,12 +13,12 @@ pytestmark = [pytest.mark.asyncio]
 
 @pytest.fixture
 def film_uuid():
-    return "797a60f4-f0aa-430f-bf1f-1145ec94d3a6"
+    return FILM_UUID
 
 
 @pytest.fixture
 def genre_uuid():
-    return "fddb2c25-3ac0-46d1-8e76-2ed6d63eec58"
+    return GENRE_UUID
 
 
 @pytest.fixture
