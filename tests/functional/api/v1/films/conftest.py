@@ -1,6 +1,8 @@
 import pytest
 
-from src.schemas.films import FilmDetail
+from schemas.films import FilmDetail
+from schemas.genres import GenreDetail
+from tests.functional.utils.helpers import add_film_document_to_elastic
 
 
 pytestmark = [pytest.mark.asyncio]
@@ -12,10 +14,28 @@ def film_uuid():
 
 
 @pytest.fixture
-def film_dto(model_factory, film_uuid) -> FilmDetail:
-    return model_factory.create_factory(FilmDetail).build(uuid=film_uuid)
+def genre_uuid():
+    return "fddb2c25-3ac0-46d1-8e76-2ed6d63eec58"
+
+
+@pytest.fixture
+def film_dto(model_factory, film_uuid, genre_uuid) -> FilmDetail:
+    genres = [GenreDetail(name="Test", uuid=genre_uuid)]
+    return model_factory.create_factory(FilmDetail).build(uuid=film_uuid, genre=genres)
 
 
 @pytest.fixture
 async def film_es(elastic, film_dto):
-    await elastic.index(index="movies", doc_type="_doc", id=film_dto.uuid, body=film_dto.dict(), refresh="wait_for")
+    await add_film_document_to_elastic(elastic, film_dto)
+
+
+@pytest.fixture
+def films_dto(model_factory, genre_uuid) -> list[FilmDetail]:
+    return model_factory.create_factory(FilmDetail).batch(size=4)
+
+
+@pytest.fixture
+async def films_es(elastic, film_dto, films_dto):
+    films_dto.append(film_dto)
+    for film in films_dto:
+        await add_film_document_to_elastic(elastic, film)
