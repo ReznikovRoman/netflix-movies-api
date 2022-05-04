@@ -21,7 +21,7 @@ async def test_film_list_ok(client, films_es, films_dto):
         assert actual == expected
 
 
-async def test_pagination_ok(client, films_es, films_dto):
+async def test_film_list_pagination(client, films_es, films_dto):
     """Пагинация фильмов работает корректно."""
     page_size = 3
 
@@ -65,7 +65,7 @@ async def test_film_list_from_cache(elastic, client, film_es, film_dto):
     assert from_cache[0]["title"] == film_dto.title
 
 
-async def test_films_from_cache_with_params(elastic, client, films_es, films_dto):
+async def test_film_list_from_cache_with_params(elastic, client, films_es, films_dto):
     """Кэширование списка фильмов корректно работает и в случае параметров в запросе."""
     sort_field = "imdb_rating"
     query = {"query": {"match_all": {}}}
