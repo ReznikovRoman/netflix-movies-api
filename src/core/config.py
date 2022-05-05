@@ -35,6 +35,7 @@ class Settings(BaseSettings):
     # Elastic
     ES_HOST: str = Field(env="NE_ES_HOST")
     ES_PORT: int = Field(env="NE_ES_PORT")
+    ES_RETRY_ON_TIMEOUT: bool = True
 
     class Config(EnvConfig):
         env_prefix = "NMA_"

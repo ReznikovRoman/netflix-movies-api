@@ -60,6 +60,7 @@ services:
       - .:/app
     command: >
       sh -c "cd /app/src
+      && python ./utils/wait_for_elastic.py
       && python -m uvicorn main:app --reload --host 0.0.0.0 --port 8001"
     depends_on:
       - redis

@@ -4,7 +4,6 @@ from typing import TYPE_CHECKING, Any
 
 import aioredis
 import aioredis.sentinel
-import backoff
 from aioredis import Redis
 
 from core.config import get_settings
@@ -54,24 +53,5 @@ class RedisCacheClient:
     async def pre_init_client(self, *args, **kwargs):
         """Вызывается до начала инициализации клиента Redis."""
 
-    @backoff.on_exception(
-        wait_gen=backoff.expo,
-        exception=aioredis.exceptions.TimeoutError,
-        max_tries=3,
-        max_time=10,
-    )
-    @backoff.on_exception(
-        wait_gen=backoff.expo,
-        exception=aioredis.exceptions.ConnectionError,
-        max_tries=3,
-        max_time=10,
-    )
-    @backoff.on_exception(
-        wait_gen=backoff.expo,
-        exception=aioredis.sentinel.SlaveNotFoundError,
-        max_tries=3,
-        max_time=10,
-    )
     async def post_init_client(self, client: Redis, *args, **kwargs) -> None:
         """Вызывается после инициализации клиента Redis."""
-        await client.ping()
