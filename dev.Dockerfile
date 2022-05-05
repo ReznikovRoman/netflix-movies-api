@@ -38,9 +38,13 @@ COPY --from=builder /usr/local/lib/python3.10/site-packages /usr/local/lib/pytho
 # Install system dependencies
 RUN apk add --no-cache libstdc++ build-base
 
+# Copy configuration files
+COPY ./conf /app/conf
+RUN chmod +x /app/conf/docker/entrypoint.sh
+
 # Copy project files
 COPY . .
 
 # Spin up gunicorn + uvicorn server
 WORKDIR /app/src
-CMD ["python", "-m", "gunicorn", "main:app", "--workers", "4", "--worker-class", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:8001"]
+CMD ["/app/conf/docker/entrypoint.sh"]
