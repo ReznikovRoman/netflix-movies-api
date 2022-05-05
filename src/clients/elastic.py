@@ -22,10 +22,9 @@ class ElasticClient:
         return elastic.es
 
     async def get_client(self) -> AsyncElasticsearch:
+        await self.pre_init_client()
         client = await self._get_client()
-        # TODO: отрефакторить:
-        #  1. Добавить методы pre_init_client, post_init_client
-        #  2. Добавить backoff на ConnectionTimeout, ConnectionError
+        await self.post_init_client(client)
         return client
 
     async def get_by_id(self, document_id: Id, index: str) -> dict:
@@ -44,6 +43,12 @@ class ElasticClient:
         except ElasticNotFoundError:
             return []
         return self._prepare_documents_list(docs)
+
+    async def pre_init_client(self, *args, **kwargs):
+        """Вызывается до начала инициализации клиента Elasticsearch."""
+
+    async def post_init_client(self, client: AsyncElasticsearch, *args, **kwargs) -> None:
+        """Вызывается после инициализации клиента Elasticsearch."""
 
     @staticmethod
     def _prepare_documents_list(docs: dict) -> list[dict]:
