@@ -37,7 +37,7 @@ async def startup():
             {"host": settings.ES_HOST, "port": settings.ES_PORT},
         ],
         max_retries=30,
-        retry_on_timeout=True,
+        retry_on_timeout=settings.ES_RETRY_ON_TIMEOUT,
         request_timeout=30,
     )
 

@@ -112,6 +112,7 @@ jobs:
           export NMA_REDIS_RETRY_ON_TIMEOUT=1
           export NE_ES_HOST=elasticsearch
           export NE_ES_PORT=9200
+          export NMA_ES_RETRY_ON_TIMEOUT=1
           export PYTEST_ADDOPTS="--ignore-glob=tests/functional/*"
           make test
 
