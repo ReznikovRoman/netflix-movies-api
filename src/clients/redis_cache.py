@@ -29,7 +29,9 @@ class RedisCacheClient:
             return await redis_sentinel.redis_sentinel.master_for(self.service_name, **self.connection_options)
 
         try:
-            return await redis_sentinel.redis_sentinel.slave_for(self.service_name, **self.connection_options)
+            slave: Redis = await redis_sentinel.redis_sentinel.slave_for(self.service_name, **self.connection_options)
+            await self._check_slave_health(slave)
+            return slave
         except (aioredis.sentinel.SlaveNotFoundError, aioredis.exceptions.TimeoutError):
             return await redis_sentinel.redis_sentinel.master_for(self.service_name, **self.connection_options)
 
@@ -55,3 +57,7 @@ class RedisCacheClient:
 
     async def post_init_client(self, client: Redis, *args, **kwargs) -> None:
         """Вызывается после инициализации клиента Redis."""
+
+    @staticmethod
+    async def _check_slave_health(slave: Redis) -> None:
+        await slave.ping()
