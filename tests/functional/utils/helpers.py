@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Sequence
 
 from schemas.films import FilmDetail
 
@@ -9,7 +9,8 @@ if TYPE_CHECKING:
     from elasticsearch import AsyncElasticsearch
 
 
-def find_object_by_value(objects: list, key: str, value: Any) -> object:
+def find_object_by_value(objects: Sequence, key: str, value: Any) -> object:
+    """Поиск объекта в списке `objects` по ключу `key` со значением `value`."""
     _filter = filter(lambda obj: getattr(obj, key) == value, objects)
     return next(_filter)
 

@@ -41,8 +41,8 @@ class PaginationTestMixin:
 
     @pytest.fixture
     def items(self, request, event_loop):
-        # проблема с асинхронными фикстурами
-        # ссылка на issue: https://github.com/pytest-dev/pytest-asyncio/issues/112#issuecomment-746031505
+        # XXX: проблема с асинхронными фикстурами в pytest-asyncio.
+        # https://github.com/pytest-dev/pytest-asyncio/issues/112#issuecomment-746031505
         request.getfixturevalue(self.pagination_factory_name)
 
     async def test_pagination(self, items):

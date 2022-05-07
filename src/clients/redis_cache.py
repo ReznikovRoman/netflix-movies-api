@@ -24,17 +24,6 @@ class RedisCacheClient:
         self.service_name = service_name
         self.connection_options = connection_options
 
-    async def _get_client(self, write: bool = False) -> Redis:
-        if write:
-            return await redis_sentinel.redis_sentinel.master_for(self.service_name, **self.connection_options)
-
-        try:
-            slave: Redis = await redis_sentinel.redis_sentinel.slave_for(self.service_name, **self.connection_options)
-            await self._check_slave_health(slave)
-            return slave
-        except (aioredis.sentinel.SlaveNotFoundError, aioredis.exceptions.TimeoutError):
-            return await redis_sentinel.redis_sentinel.master_for(self.service_name, **self.connection_options)
-
     async def get_client(self, key: str | None = None, *, write: bool = False) -> Redis:
         await self.pre_init_client()
         client = await self._get_client(write)
@@ -57,6 +46,19 @@ class RedisCacheClient:
 
     async def post_init_client(self, client: Redis, *args, **kwargs) -> None:
         """Вызывается после инициализации клиента Redis."""
+
+    async def _get_client(self, write: bool = False) -> Redis:
+        if write:
+            return await redis_sentinel.redis_sentinel.master_for(self.service_name, **self.connection_options)
+
+        try:
+            slave: Redis = await redis_sentinel.redis_sentinel.slave_for(self.service_name, **self.connection_options)
+            # XXX: в методе .slave_for() не проверяется состояние слейва (как это происходит в .discover_slaves())
+            # поэтому нам приходится вручную каждый раз пинговать слейва и ловить ошибку `SlaveNotFoundError`
+            await self._check_slave_health(slave)
+            return slave
+        except (aioredis.sentinel.SlaveNotFoundError, aioredis.exceptions.TimeoutError):
+            return await redis_sentinel.redis_sentinel.master_for(self.service_name, **self.connection_options)
 
     @staticmethod
     async def _check_slave_health(slave: Redis) -> None:

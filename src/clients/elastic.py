@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, ClassVar
 
-from elasticsearch import AsyncElasticsearch
 from elasticsearch.exceptions import NotFoundError as ElasticNotFoundError
 
 from common.exceptions import NotFoundError
@@ -10,6 +9,8 @@ from db import elastic
 
 
 if TYPE_CHECKING:
+    from elasticsearch import AsyncElasticsearch
+
     from common.types import Id, Query
 
 
@@ -41,10 +42,12 @@ class ElasticClient:
         try:
             docs = await client.search(index=index, body=query, request_timeout=timeout, **options)
         except ElasticNotFoundError:
+            # XXX: если в эластике нет данного индекса, то выкидывается ошибка `NotFoundError`
+            # в таком случае будем просто возвращать пустой список
             return []
         return self._prepare_documents_list(docs)
 
-    async def pre_init_client(self, *args, **kwargs):
+    async def pre_init_client(self, *args, **kwargs) -> None:
         """Вызывается до начала инициализации клиента Elasticsearch."""
 
     async def post_init_client(self, client: AsyncElasticsearch, *args, **kwargs) -> None:

@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 
 
 class RedisCache(AsyncCache):
-    """Кеш с использованием Redis в качестве бекенда."""
+    """Кеш с использованием Redis."""
 
     def __init__(self, service_name: str, params: dict[str, Any] = None, default_timeout: seconds | None = None):
         self.default_timeout = default_timeout
