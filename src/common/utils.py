@@ -2,6 +2,7 @@ from .exceptions import ImproperlyConfiguredError
 
 
 def RequiredAttributes(*required_attrs):  # noqa
+    """Метакласс для указания обязательных переменных класса."""
     class RequiredAttributesMeta(type):
         def __init__(cls, name, bases, attrs):
             if not bases:

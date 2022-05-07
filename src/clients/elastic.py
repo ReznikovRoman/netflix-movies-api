@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, ClassVar
 
-from elasticsearch import AsyncElasticsearch
 from elasticsearch.exceptions import NotFoundError as ElasticNotFoundError
 
 from common.exceptions import NotFoundError
@@ -10,6 +9,8 @@ from db import elastic
 
 
 if TYPE_CHECKING:
+    from elasticsearch import AsyncElasticsearch
+
     from common.types import Id, Query
 
 
@@ -22,13 +23,12 @@ class ElasticClient:
         return elastic.es
 
     async def get_client(self) -> AsyncElasticsearch:
+        await self.pre_init_client()
         client = await self._get_client()
-        # TODO: отрефакторить:
-        #  1. Добавить методы pre_init_client, post_init_client
-        #  2. Добавить backoff на ConnectionTimeout, ConnectionError
+        await self.post_init_client(client)
         return client
 
-    async def get_by_id(self, document_id: Id, index: str) -> dict:
+    async def get_by_id(self, index: str, document_id: Id) -> dict:
         client = await self.get_client()
         try:
             doc = await client.get(index=index, id=str(document_id), request_timeout=ElasticClient.REQUEST_TIMEOUT)
@@ -36,11 +36,22 @@ class ElasticClient:
             raise NotFoundError()
         return doc["_source"]
 
-    async def search(self, query: Query, index: str, **options) -> list[dict]:
+    async def search(self, index: str, query: Query, **options) -> list[dict]:
         client = await self.get_client()
         timeout = options.pop("request_timeout", ElasticClient.REQUEST_TIMEOUT)
-        docs = await client.search(index=index, body=query, request_timeout=timeout, **options)
+        try:
+            docs = await client.search(index=index, body=query, request_timeout=timeout, **options)
+        except ElasticNotFoundError:
+            # XXX: если в эластике нет данного индекса, то выкидывается ошибка `NotFoundError`
+            # в таком случае будем просто возвращать пустой список
+            return []
         return self._prepare_documents_list(docs)
+
+    async def pre_init_client(self, *args, **kwargs) -> None:
+        """Вызывается до начала инициализации клиента Elasticsearch."""
+
+    async def post_init_client(self, client: AsyncElasticsearch, *args, **kwargs) -> None:
+        """Вызывается после инициализации клиента Elasticsearch."""
 
     @staticmethod
     def _prepare_documents_list(docs: dict) -> list[dict]:

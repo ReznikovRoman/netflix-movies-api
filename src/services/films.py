@@ -39,8 +39,7 @@ class FilmService:
             search_query=genre,
             search_fields=self.film_repository.es_film_genre_search_field,
         )
-        films = await self.film_repository.search_items_in_storage(
-            schema_class=FilmList, query=request_body, sort=sort)
+        films = await self.film_repository.search_items_in_storage(schema_class=FilmList, query=request_body, sort=sort)
 
         await self.film_repository.put_items_to_cache(key, films)
         return films
@@ -60,8 +59,7 @@ class FilmService:
             search_query=query,
             search_fields=self.film_repository.es_film_index_search_fields,
         )
-        films = await self.film_repository.search_items_in_storage(
-            schema_class=FilmList, query=request_body, sort=sort)
+        films = await self.film_repository.search_items_in_storage(schema_class=FilmList, query=request_body, sort=sort)
 
         await self.film_repository.put_items_to_cache(key, films)
         return films

@@ -2,6 +2,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 
+from api.constants import MESSAGE
 from api.deps import PageNumberPaginationQueryParams
 from common.exceptions import NotFoundError
 from schemas.films import FilmList
@@ -48,7 +49,7 @@ async def get_person(uuid: UUID, person_service: PersonService = Depends(get_per
     try:
         person = await person_service.get_person_by_id(uuid)
     except NotFoundError:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="person not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=MESSAGE.PERSON_NOT_FOUND.value)
 
     return person
 
@@ -59,7 +60,7 @@ async def get_person_full(uuid: UUID, person_service: PersonService = Depends(ge
     try:
         person = await person_service.get_person_detail_by_id(uuid)
     except NotFoundError:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="person not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=MESSAGE.PERSON_NOT_FOUND.value)
 
     return person
 
@@ -70,6 +71,6 @@ async def get_person_films(uuid: UUID, person_service: PersonService = Depends(g
     try:
         person_films = await person_service.get_person_films(uuid)
     except NotFoundError:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="person not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=MESSAGE.PERSON_NOT_FOUND.value)
 
     return person_films

@@ -53,8 +53,7 @@ class PersonService:
             search_query=query,
             search_fields=self.person_repository.es_person_index_search_fields,
         )
-        persons = await self.person_repository.search_items_in_storage(
-            schema_class=PersonList, query=request_body)
+        persons = await self.person_repository.search_items_in_storage(schema_class=PersonList, query=request_body)
 
         await self.person_repository.put_items_to_cache(key, persons)
         return persons

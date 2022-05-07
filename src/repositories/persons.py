@@ -5,7 +5,7 @@ from uuid import UUID
 from fastapi import Depends
 
 from db.cache import AsyncCache, get_redis_cache
-from db.storage import AsyncStorage, get_elastic_storage
+from db.storage import AsyncNoSQLStorage, get_elastic_storage
 
 from .base import CacheRepositoryMixin, ElasticRepositoryMixin, ElasticSearchRepositoryMixin
 
@@ -22,7 +22,7 @@ class PersonRepository(ElasticSearchRepositoryMixin, ElasticRepositoryMixin, Cac
     person_cache_ttl: ClassVar[int] = 5 * 60  # 5 минут
     hashed_params_key_length: ClassVar[int] = 10
 
-    def __init__(self, storage: AsyncStorage, cache: AsyncCache):
+    def __init__(self, storage: AsyncNoSQLStorage, cache: AsyncCache):
         self.storage = storage
         self.cache = cache
 
@@ -65,6 +65,6 @@ class PersonRepository(ElasticSearchRepositoryMixin, ElasticRepositoryMixin, Cac
 @lru_cache()
 def get_person_repository(
         redis: AsyncCache = Depends(get_redis_cache),
-        storage: AsyncStorage = Depends(get_elastic_storage),
+        storage: AsyncNoSQLStorage = Depends(get_elastic_storage),
 ) -> PersonRepository:
     return PersonRepository(storage, redis)

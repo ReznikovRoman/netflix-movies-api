@@ -1,20 +1,27 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Protocol
+from abc import ABC, abstractmethod
+from typing import TYPE_CHECKING, Any
 
 
 if TYPE_CHECKING:
     from common.types import Id, Query
 
 
-class AsyncStorage(Protocol):
-    """Асинхронная база данных."""
+class AsyncNoSQLStorage(ABC):
+    """Асинхронная NoSQL база данных."""
 
-    async def get_by_id(self, instance_id: Id, *args, **kwargs) -> Any:
+    @abstractmethod
+    async def get_by_id(self, collection: str, document_id: Id, *args, **kwargs) -> Any:
         """Получение записи из БД по ID `instance_id`."""
+        raise NotImplementedError
 
-    async def search(self, query: Query, *args, **kwargs) -> Any:
+    @abstractmethod
+    async def search(self, collection: str, query: Query, *args, **kwargs) -> Any:
         """Получение записей из БД с запросом `query`."""
+        raise NotImplementedError
 
-    async def get_all(self, *args, **kwargs) -> Any:
+    @abstractmethod
+    async def get_all(self, collection: str, *args, **kwargs) -> Any:
         """Получение всех записей."""
+        raise NotImplementedError

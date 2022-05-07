@@ -4,7 +4,7 @@ from typing import ClassVar
 from fastapi import Depends
 
 from db.cache import AsyncCache, get_redis_cache
-from db.storage import AsyncStorage, get_elastic_storage
+from db.storage import AsyncNoSQLStorage, get_elastic_storage
 
 from .base import CacheRepositoryMixin, ElasticRepositoryMixin, ElasticSearchRepositoryMixin
 
@@ -27,7 +27,7 @@ class FilmRepository(ElasticSearchRepositoryMixin, ElasticRepositoryMixin, Cache
     film_cache_ttl: ClassVar[int] = 5 * 60  # 5 минут
     hashed_params_key_length: ClassVar[int] = 10
 
-    def __init__(self, storage: AsyncStorage, cache: AsyncCache):
+    def __init__(self, storage: AsyncNoSQLStorage, cache: AsyncCache):
         self.storage = storage
         self.cache = cache
 
@@ -35,6 +35,6 @@ class FilmRepository(ElasticSearchRepositoryMixin, ElasticRepositoryMixin, Cache
 @lru_cache()
 def get_film_repository(
         cache: AsyncCache = Depends(get_redis_cache),
-        storage: AsyncStorage = Depends(get_elastic_storage),
+        storage: AsyncNoSQLStorage = Depends(get_elastic_storage),
 ) -> FilmRepository:
     return FilmRepository(storage, cache)

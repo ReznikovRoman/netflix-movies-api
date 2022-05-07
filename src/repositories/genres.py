@@ -4,7 +4,7 @@ from typing import ClassVar
 from fastapi import Depends
 
 from db.cache import AsyncCache, get_redis_cache
-from db.storage import AsyncStorage, get_elastic_storage
+from db.storage import AsyncNoSQLStorage, get_elastic_storage
 
 from .base import CacheRepositoryMixin, ElasticRepositoryMixin
 
@@ -16,7 +16,7 @@ class GenreRepository(ElasticRepositoryMixin, CacheRepositoryMixin):
 
     cache_ttl: ClassVar[int] = 5 * 60  # 5 минут
 
-    def __init__(self, storage: AsyncStorage, cache: AsyncCache):
+    def __init__(self, storage: AsyncNoSQLStorage, cache: AsyncCache):
         self.storage = storage
         self.cache = cache
 
@@ -24,6 +24,6 @@ class GenreRepository(ElasticRepositoryMixin, CacheRepositoryMixin):
 @lru_cache()
 def get_genre_repository(
         redis: AsyncCache = Depends(get_redis_cache),
-        storage: AsyncStorage = Depends(get_elastic_storage),
+        storage: AsyncNoSQLStorage = Depends(get_elastic_storage),
 ) -> GenreRepository:
     return GenreRepository(storage, redis)

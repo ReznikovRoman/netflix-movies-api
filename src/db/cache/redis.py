@@ -5,13 +5,15 @@ from typing import TYPE_CHECKING, Any
 
 from clients.redis_cache import RedisCacheClient
 
+from .base import AsyncCache
+
 
 if TYPE_CHECKING:
     from common.types import seconds
 
 
-class RedisCache:
-    """Кеш с использованием Redis в качестве бекенда."""
+class RedisCache(AsyncCache):
+    """Кеш с использованием Redis."""
 
     def __init__(self, service_name: str, params: dict[str, Any] = None, default_timeout: seconds | None = None):
         self.default_timeout = default_timeout

@@ -8,7 +8,7 @@ import orjson
 from pydantic import parse_obj_as
 
 from common.types import ApiSchema, ApiSchemaClass
-from db.storage.base import AsyncStorage
+from db.storage.base import AsyncNoSQLStorage
 
 
 if TYPE_CHECKING:
@@ -21,22 +21,19 @@ class ElasticRepositoryMixin:
 
     es_index_name: ClassVar[str]
 
-    storage: AsyncStorage
+    storage: AsyncNoSQLStorage
 
     async def get_item_from_storage(self, document_id: Id, schema_class: ApiSchemaClass) -> ApiSchema:
-        doc = await self.storage.get_by_id(instance_id=document_id, index=self.es_index_name)
+        doc = await self.storage.get_by_id(self.es_index_name, document_id)
         return schema_class(**doc)
 
     async def search_items_in_storage(
-        self,
-        schema_class: ApiSchemaClass, query: dict,
-        index_name: str | None = None,
-        **search_options,
+        self, schema_class: ApiSchemaClass, query: dict, index_name: str | None = None, **search_options,
     ) -> list[ApiSchema]:
         if index_name is None:
             index_name = self.es_index_name
 
-        docs = await self.storage.search(query=query, index=index_name, **search_options)
+        docs = await self.storage.search(index_name, query, **search_options)
         return parse_obj_as(list[schema_class], docs)
 
     async def get_all_items_from_storage(self, schema_class: ApiSchemaClass, **search_options) -> list[ApiSchema]:
@@ -48,11 +45,7 @@ class ElasticSearchRepositoryMixin:
     """Миксин для работы с фильтрацией, пагинацией и сортировкой в Elasticsearch."""
 
     def prepare_search_request(
-        self,
-        page_size: int,
-        page_number: int,
-        search_query: str | None = None,
-        search_fields: list[str] | None = None,
+        self, page_size: int, page_number: int, search_query: str | None = None, search_fields: list[str] | None = None,
     ) -> dict:
         request_body = {
             "size": page_size,
@@ -61,10 +54,7 @@ class ElasticSearchRepositoryMixin:
         request_query = {"match_all": {}}
         if search_query is not None:
             request_query = {
-                "multi_match": {
-                    "query": search_query,
-                    "fields": search_fields,
-                },
+                "multi_match": {"query": search_query, "fields": search_fields},
             }
         request_body["query"] = request_query
         return request_body

@@ -9,14 +9,17 @@
 ## Настройка и запуск
 
 Docker конфигурации содержат контейнеры:
- 1. redis
- 2. server
-3. db_admin
-7. server_admin
-4. redis_etl
-5. elasticsearch_etl
-6. kibana_etl
- 8. etl
+ 1. redis-sentinel
+ 2. redis
+ 3. redis-slave
+ 4. redis-slave-2
+ 5. server
+ 6. db_admin
+ 7. server_admin
+ 8. redis_etl
+ 9. elasticsearch_etl
+ 10. kibana_etl
+ 11. etl
 
 Файлы docker-compose:
  1. `docker-compose.yml` - для локальной разработки
@@ -80,6 +83,8 @@ NMA_REDIS_MASTER_SET=redis_cluster
 NMA_REDIS_PASSWORD=
 NMA_REDIS_DECODE_RESPONSES=1
 NMA_REDIS_RETRY_ON_TIMEOUT=1
+# Elasticsearch
+NMA_ES_RETRY_ON_TIMEOUT=1
 ```
 
 ### Запуск проекта:
@@ -151,6 +156,8 @@ NMA_REDIS_MASTER_SET=redis_cluster
 NMA_REDIS_PASSWORD=
 NMA_REDIS_DECODE_RESPONSES=1
 NMA_REDIS_RETRY_ON_TIMEOUT=1
+# Elasticsearch
+NMA_ES_RETRY_ON_TIMEOUT=1
 # Tests
 TEST_CLIENT_BASE_URL=http://server:8001
 ```

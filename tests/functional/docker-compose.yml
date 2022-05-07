@@ -61,6 +61,8 @@ services:
       "
     depends_on:
       - redis
+      - redis-sentinel
+      - redis-slave
 
   test:
     restart: on-failure

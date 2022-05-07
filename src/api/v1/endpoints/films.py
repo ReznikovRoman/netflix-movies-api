@@ -2,6 +2,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 
+from api.constants import MESSAGE
 from api.deps import PageNumberPaginationQueryParams, SortQueryParams
 from common.exceptions import NotFoundError
 from schemas.films import FilmDetail, FilmList
@@ -61,6 +62,6 @@ async def get_film(uuid: UUID, film_service: FilmService = Depends(get_film_serv
     try:
         film = await film_service.get_film_by_id(uuid)
     except NotFoundError:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="film not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=MESSAGE.FILM_NOT_FOUND.value)
 
     return film

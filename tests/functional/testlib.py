@@ -1,9 +1,8 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING, Any, Union
 
 import aioredis.sentinel
-import backoff
 import elasticsearch
 import orjson
 from aiohttp import ClientSession
@@ -16,7 +15,7 @@ if TYPE_CHECKING:
     from aiohttp import ClientResponse
     from aioredis import Redis
 
-    APIResponse = Union[dict, str]
+    APIResponse = Union[dict, str, list[dict], dict[str, Any]]
 
 
 settings = get_settings()
@@ -86,12 +85,6 @@ def create_anon_client() -> APIClient:
     return APIClient(base_url=settings.CLIENT_BASE_URL)
 
 
-@backoff.on_exception(
-    wait_gen=backoff.expo,
-    exception=elasticsearch.exceptions.ConnectionError,
-    max_tries=5,
-    max_time=2 * 60,
-)
 async def setup_elastic() -> elasticsearch.AsyncElasticsearch:
     elastic = elasticsearch.AsyncElasticsearch(
         hosts=[
