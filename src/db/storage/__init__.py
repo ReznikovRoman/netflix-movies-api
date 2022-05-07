@@ -1,8 +1,8 @@
-from .base import AsyncStorage
+from .base import AsyncNoSQLStorage
 from .deps import get_elastic_storage
 
 
 __all__ = [
-    "AsyncStorage",
+    "AsyncNoSQLStorage",
     "get_elastic_storage",
 ]

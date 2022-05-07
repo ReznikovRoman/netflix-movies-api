@@ -27,7 +27,7 @@ class ElasticClient:
         await self.post_init_client(client)
         return client
 
-    async def get_by_id(self, document_id: Id, index: str) -> dict:
+    async def get_by_id(self, index: str, document_id: Id) -> dict:
         client = await self.get_client()
         try:
             doc = await client.get(index=index, id=str(document_id), request_timeout=ElasticClient.REQUEST_TIMEOUT)
@@ -35,7 +35,7 @@ class ElasticClient:
             raise NotFoundError()
         return doc["_source"]
 
-    async def search(self, query: Query, index: str, **options) -> list[dict]:
+    async def search(self, index: str, query: Query, **options) -> list[dict]:
         client = await self.get_client()
         timeout = options.pop("request_timeout", ElasticClient.REQUEST_TIMEOUT)
         try:
