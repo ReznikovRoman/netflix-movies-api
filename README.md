@@ -9,14 +9,17 @@
 ## Настройка и запуск
 
 Docker конфигурации содержат контейнеры:
- 1. redis
- 2. server
-3. db_admin
-7. server_admin
-4. redis_etl
-5. elasticsearch_etl
-6. kibana_etl
- 8. etl
+ 1. redis-sentinel
+ 2. redis
+ 3. redis-slave
+ 4. redis-slave-2
+ 5. server
+ 6. db_admin
+ 7. server_admin
+ 8. redis_etl
+ 9. elasticsearch_etl
+ 10. kibana_etl
+ 11. etl
 
 Файлы docker-compose:
  1. `docker-compose.yml` - для локальной разработки
