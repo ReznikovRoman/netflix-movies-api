@@ -94,14 +94,12 @@ async def setup_elastic() -> elasticsearch.AsyncElasticsearch:
         retry_on_timeout=True,
         request_timeout=30,
     )
-    # for index_name in elastic_schemas.keys():
-    #     await elastic.indices.delete(index=index_name)
     for index_name, mapping in elastic_schemas.items():
         body = {
             "settings": ES_INDEX_SETTINGS,
             "mappings": mapping,
         }
-        await elastic.indices.create(index=index_name, body=body)
+        await elastic.indices.create(index=index_name, body=body, ignore=[400, 404])
     return elastic
 
 
