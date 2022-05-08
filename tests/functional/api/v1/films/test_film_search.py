@@ -1,12 +1,17 @@
 import pytest
 
-from ..base import BaseClientTest, CacheTestMixin, CacheWithParamsSearchTestMixin, PaginationTestMixin
+from ..base import BaseClientTest, CacheTestMixin, CacheWithParamsTestMixin, PaginationTestMixin
 
 
 pytestmark = [pytest.mark.asyncio]
 
 
-class TestFilmSearch(CacheTestMixin, PaginationTestMixin, BaseClientTest, CacheWithParamsSearchTestMixin):
+class TestFilmSearch(
+    CacheWithParamsTestMixin,
+    CacheTestMixin,
+    PaginationTestMixin,
+    BaseClientTest,
+):
     """Тестирование поиска по фильмам."""
 
     endpoint = "/api/v1/films/search/"
@@ -15,18 +20,19 @@ class TestFilmSearch(CacheTestMixin, PaginationTestMixin, BaseClientTest, CacheW
     pagination_request_params = {"query": "Title"}
     empty_request_params = {"query": "XXX"}
 
-    cache_es_index_name = "movies"
     cache_field_name = "title"
+    cache_es_index_name = "movies"
     cache_es_fixture_name = "film_es"
     cache_dto_fixture_name = "film_dto"
     cache_request_params = {"query": "CustomFilm"}
-    cache_dtos_fixture_name = "films_dto"
-    cache_ess_fixture_name = "films_es"
 
-    cache_search_fields = ["title", "description", "genres_names", "actors_names", "directors_names", "writers_names"]
-    cache_search_query = "Title"
-    cache_sort_field = "imdb_rating"
-    cache_field_to_change = "title"
+    _search_fields = ["title", "description", "genres_names", "actors_names", "directors_names", "writers_names"]
+    _search_query = "Title"
+    cache_es_query = {"query": {"multi_match": {"query": _search_query, "fields": _search_fields}}}
+    cache_es_params = {"sort": "imdb_rating:desc"}
+    cache_es_list_fixture_name = "films_es"
+    cache_dto_list_fixture_name = "films_dto"
+    cache_with_params_request = {"query": _search_query, "sort": "-imdb_rating"}
 
     async def test_film_search_ok(self, films_es, film_dto):
         """Поиск по фильмам работает корректно."""

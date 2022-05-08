@@ -6,23 +6,28 @@ from ..base import BaseClientTest, CacheTestMixin, CacheWithParamsTestMixin, Pag
 pytestmark = [pytest.mark.asyncio]
 
 
-class TestFilmList(CacheTestMixin, PaginationTestMixin, BaseClientTest, CacheWithParamsTestMixin):
+class TestFilmList(
+    CacheWithParamsTestMixin,
+    CacheTestMixin,
+    PaginationTestMixin,
+    BaseClientTest,
+):
     """Тестирование получения списка фильмов."""
 
     endpoint = "/api/v1/films/"
 
     pagination_factory_name = "films_es"
 
-    cache_es_index_name = "movies"
     cache_field_name = "title"
+    cache_es_index_name = "movies"
     cache_es_fixture_name = "film_es"
     cache_dto_fixture_name = "film_dto"
-    cache_dtos_fixture_name = "films_dto"
-    cache_ess_fixture_name = "films_es"
 
-    cache_sort_field = "imdb_rating"
-    cache_query = {"query": {"match_all": {}}}
-    cache_field_to_change = "title"
+    cache_es_query = {"query": {"match_all": {}}}
+    cache_es_params = {"sort": "imdb_rating:desc"}
+    cache_es_list_fixture_name = "films_es"
+    cache_dto_list_fixture_name = "films_dto"
+    cache_with_params_request = {"sort": "-imdb_rating"}
 
     async def test_film_list_ok(self, films_es, films_dto):
         """Получение списка фильмов работает корректно."""
