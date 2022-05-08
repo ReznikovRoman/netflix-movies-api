@@ -1,8 +1,11 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
+from uuid import UUID
 
 import pytest
+
+from tests.functional.utils.helpers import find_object_by_value
 
 
 if TYPE_CHECKING:
@@ -68,6 +71,7 @@ class CacheTestMixin:
     """Миксин для тестов на корректную работу кэша."""
 
     cache_field_name: str
+    cache_es_index_name: str
     cache_es_fixture_name: str
     cache_dto_fixture_name: str
 
@@ -103,12 +107,71 @@ class CacheTestMixin:
             from_source = from_source[0]
         assert from_source[self.cache_field_name] == getattr(obj_dto, self.cache_field_name)
 
-        await elastic.index(index="movies", doc_type="_doc", id=obj_id, body=body, refresh="wait_for")
+        await elastic.index(index=self.cache_es_index_name, doc_type="_doc", id=obj_id, body=body, refresh="wait_for")
         from_cache = await self.client.get(request_url, params=self.cache_request_params)
         if isinstance(from_cache, list):
             from_cache = from_cache[0]
         assert from_cache[self.cache_field_name] != new_value
         assert from_cache[self.cache_field_name] == getattr(obj_dto, self.cache_field_name)
+
+
+class CacheWithParamsTestMixin:
+    """Миксин с параметрами для тестов на корректную работу кэша."""
+
+    # из `CacheTestMixin`
+    cache_field_name: str
+    cache_es_index_name: str
+    cache_es_fixture_name: str
+    cache_dto_fixture_name: str
+    cache_request_url: str | None = None
+    cache_obj_id_field: str = "uuid"
+    cache_request_params: dict | None = None
+
+    cache_es_query: str
+    cache_es_params: dict | None = None
+    cache_es_list_fixture_name: str
+    cache_dto_list_fixture_name: str
+    cache_with_params_request: dict
+
+    @pytest.fixture(autouse=True)
+    def _setup_cache_es_params(self):
+        if self.cache_es_params is None:
+            self.cache_es_params = {}
+
+    @pytest.fixture
+    def objs_dto(self, request, event_loop):
+        return request.getfixturevalue(self.cache_dto_list_fixture_name)
+
+    @pytest.fixture
+    def objs_es(self, request, event_loop):
+        return request.getfixturevalue(self.cache_es_list_fixture_name)
+
+    @pytest.mark.usefixtures("elastic")
+    async def test_obj_list_from_cache_with_params(self, elastic, objs_es, objs_dto):
+        """Кэширование списка объектов корректно работает и в случае параметров в запросе."""
+        request_url = self.cache_request_url or self.endpoint
+        expected_es = await elastic.search(
+            index=self.cache_es_index_name, body=self.cache_es_query, **self.cache_es_params)
+        expected_uuid = expected_es["hits"]["hits"][0]["_source"][self.cache_obj_id_field]
+        obj_dto = find_object_by_value(objs_dto, self.cache_obj_id_field, UUID(expected_uuid))
+        new_value = "XXX"
+        body = obj_dto.dict()
+        body[self.cache_field_name] = new_value
+
+        from_source = await self.client.get(request_url, params=self.cache_with_params_request)
+        assert from_source[0][self.cache_obj_id_field] == expected_uuid
+
+        await elastic.index(
+            index=self.cache_es_index_name,
+            doc_type="_doc",
+            id=str(getattr(obj_dto, self.cache_obj_id_field)),
+            body=body,
+            refresh="wait_for",
+        )
+        from_cache = await self.client.get(request_url, params=self.cache_with_params_request)
+        assert from_cache[0][self.cache_obj_id_field] == expected_uuid
+        assert from_cache[0][self.cache_field_name] != new_value
+        assert from_cache[0][self.cache_field_name] == getattr(obj_dto, self.cache_field_name)
 
 
 class NotFoundTestMixin:

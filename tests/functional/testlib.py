@@ -99,7 +99,7 @@ async def setup_elastic() -> elasticsearch.AsyncElasticsearch:
             "settings": ES_INDEX_SETTINGS,
             "mappings": mapping,
         }
-        await elastic.indices.create(index=index_name, body=body)
+        await elastic.indices.create(index=index_name, body=body, ignore=[400, 404])
     return elastic
 
 
