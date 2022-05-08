@@ -28,11 +28,8 @@ class ElasticRepositoryMixin:
         return schema_class(**doc)
 
     async def search_items_in_storage(
-        self, schema_class: ApiSchemaClass, query: dict, index_name: str | None = None, **search_options,
+        self, schema_class: ApiSchemaClass, query: dict, index_name: str, **search_options,
     ) -> list[ApiSchema]:
-        if index_name is None:
-            index_name = self.es_index_name
-
         docs = await self.storage.search(index_name, query, **search_options)
         return parse_obj_as(list[schema_class], docs)
 
