@@ -15,6 +15,7 @@ class TestFilmRetrieve(NotFoundTestMixin, CacheTestMixin, BaseClientTest):
     not_found_endpoint = f"/api/v1/films/{FILM_UUID}"
 
     cache_request_url = f"/api/v1/films/{FILM_UUID}"
+    cache_es_index_name = "movies"
     cache_field_name = "title"
     cache_es_fixture_name = "film_es"
     cache_dto_fixture_name = "film_dto"
