@@ -66,7 +66,7 @@ class ElasticSearchRepositoryMixin:
 
 
 class CacheRepositoryMixin:
-    """Миксин для работы с кешом."""
+    """Миксин для работы с кэшом."""
 
     cache: AsyncCache
 
@@ -95,7 +95,7 @@ class CacheRepositoryMixin:
     async def make_key(
         self, key_to_hash: str, *, min_length: int, prefix: str | None = None, suffix: str = None,
     ) -> str:
-        """Получение ключа для кеша."""
+        """Получение ключа для кэша."""
         hashed_key = self.calculate_hash_for_given_str(key_to_hash, min_length)
         key = self.make_key_with_affixes(hashed_key, prefix, suffix)
         return key

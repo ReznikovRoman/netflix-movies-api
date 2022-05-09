@@ -18,7 +18,7 @@ settings = get_settings()
 
 
 class RedisCacheClient:
-    """Клиент Redis для кеша."""
+    """Клиент Redis для кэша."""
 
     def __init__(self, service_name: str, connection_options: dict[str, Any]):
         self.service_name = service_name
