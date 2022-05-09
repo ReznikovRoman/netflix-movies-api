@@ -48,14 +48,29 @@ services:
     volumes:
       - redis_slave_data:/data
 
+  traefik:
+    image: traefik:v2.7
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+    ports:
+      - "8008:80"
+      - "8081:8080"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+    depends_on:
+      - server
+
   server:
     restart: always
     build:
       context: .
     env_file:
       - $ENV
-    ports:
-      - "8001:8001"
+    expose:
+      - 8001
     volumes:
       - .:/app
     command: >
@@ -67,6 +82,9 @@ services:
       - redis
       - redis-slave
       - redis-slave-2
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.fastapi.rule=Host(`api.localhost`)"
 
   db_admin:
     image: yandexmiddleteamv1/netflix-admin-db:latest

@@ -39,23 +39,19 @@ PYTHONUNBUFFERED=1
 DJANGO_SETTINGS_MODULE=netflix.settings
 DJANGO_CONFIGURATION=External
 DJANGO_ADMIN=django-cadmin
-DJANGO_SECRET_KEY=chnage-me
+DJANGO_SECRET_KEY=change-me
 ALLOWED_HOSTS=localhost,127.0.0.1
-
 # Project
 NA_PROJECT_BASE_URL=http://localhost:8000
-
 # Media
 NA_MEDIA_URL=/media/
 NA_STATIC_URL=/staticfiles/
-
 # Postgres
 NA_DB_HOST=db_admin
 NA_DB_PORT=5432
 NA_DB_NAME=
 NA_DB_USER=
 NA_DB_PASSWORD=
-
 # Scripts
 NA_DB_POSTGRES_BATCH_SIZE=500
 
@@ -64,17 +60,16 @@ NA_DB_POSTGRES_BATCH_SIZE=500
 NE_REDIS_HOST=redis_etl
 NE_REDIS_PORT=6379
 NE_REDIS_DECODE_RESPONSES=1
-
 # Elasticsearch
 NE_ES_HOST=elasticsearch_etl
 NE_ES_PORT=9200
 
 # Netflix Movies API
 # Project
-NMA_PROJECT_BASE_URL=http://localhost:8001
+NMA_PROJECT_BASE_URL=http://api.localhost:8008
 NMA_API_V1_STR=/api/v1
 NMA_SERVER_NAME=localhost
-NMA_SERVER_HOSTS=http://127.0.0.1:8001,http://localhost:8001
+NMA_SERVER_HOSTS=http://api.localhost:8008
 NMA_PROJECT_NAME=netflix
 NMA_DEBUG=1
 # Redis
@@ -144,10 +139,10 @@ NE_ES_PORT=9200
 
 # Netflix Movies API
 # Project
-NMA_PROJECT_BASE_URL=http://localhost:8001
+NMA_PROJECT_BASE_URL=http://api.localhost:8008
 NMA_API_V1_STR=/api/v1
 NMA_SERVER_NAME=localhost
-NMA_SERVER_HOSTS=http://localhost:8001,http://127.0.0.1:8001
+NMA_SERVER_HOSTS=http://api.localhost:8008
 NMA_PROJECT_NAME=netflix
 NMA_DEBUG=1
 # Redis
