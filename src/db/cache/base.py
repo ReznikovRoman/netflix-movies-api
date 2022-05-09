@@ -9,11 +9,11 @@ if TYPE_CHECKING:
 
 
 class AsyncCache(ABC):
-    """Асинхронный кеш."""
+    """Асинхронный кэш."""
 
     @abstractmethod
     async def get(self, key: str) -> Any:
-        """Получение данных из кеша по ключу `key`."""
+        """Получение данных из кэша по ключу `key`."""
         raise NotImplementedError
 
     @abstractmethod
@@ -32,5 +32,5 @@ class AsyncCache(ABC):
 
     @abstractmethod
     def get_timeout(self, timeout: seconds | None = None) -> int | None:
-        """Получение `ttl` (таймаута) для записи в кеше."""
+        """Получение `ttl` (таймаута) для записи в кэше."""
         raise NotImplementedError

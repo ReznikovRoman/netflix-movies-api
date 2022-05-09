@@ -15,7 +15,7 @@ class CacheServiceMixin:
     repository: Repository
 
     async def get_item_from_storage_or_cache(self, key: str, object_id: Id, schema_class: ApiSchemaClass) -> ApiSchema:
-        """Получение объекта из основной БД или из кеша."""
+        """Получение объекта из основной БД или из кэша."""
         item = await self.repository.get_item_from_cache(key, schema_class)
         if item is not None:
             return item
@@ -26,7 +26,7 @@ class CacheServiceMixin:
         return item
 
     async def get_items_from_storage_or_cache(self, key: str, schema_class: ApiSchemaClass) -> list[ApiSchema]:
-        """Получение списка объектов из БД или из кеша."""
+        """Получение списка объектов из БД или из кэша."""
         items = await self.repository.get_items_from_cache(key, schema_class)
         if items is not None:
             return items

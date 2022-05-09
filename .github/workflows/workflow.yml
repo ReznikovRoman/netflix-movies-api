@@ -99,10 +99,10 @@ jobs:
           pip install -r requirements/requirements.test.txt
       - name: Run tests
         run: |
-          export NMA_PROJECT_BASE_URL=http://localhost:8001
+          export NMA_PROJECT_BASE_URL=http://api.localhost:8008
           export NMA_API_V1_STR=/api/v1
           export NMA_SERVER_NAME=localhost
-          export NMA_SERVER_HOSTS=http://0.0.0.0:8001,http://127.0.0.1:8001,http://localhost:8001
+          export NMA_SERVER_HOSTS=http://api.localhost:8008
           export NMA_PROJECT_NAME=netflix-movies-api
           export NMA_DEBUG=0
           export NMA_REDIS_SENTINELS=redis-sentinel
