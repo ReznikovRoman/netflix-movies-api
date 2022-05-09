@@ -13,13 +13,14 @@ Docker конфигурации содержат контейнеры:
  2. redis
  3. redis-slave
  4. redis-slave-2
- 5. server
- 6. db_admin
- 7. server_admin
- 8. redis_etl
- 9. elasticsearch_etl
- 10. kibana_etl
- 11. etl
+ 5. traefik
+ 6. server
+ 7. db_admin
+ 8. server_admin
+ 9. redis_etl
+ 10. elasticsearch_etl
+ 11. kibana_etl
+ 12. etl
 
 Файлы docker-compose:
  1. `docker-compose.yml` - для локальной разработки
