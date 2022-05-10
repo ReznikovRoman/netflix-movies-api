@@ -1,4 +1,35 @@
+version: '3.8'
+
 services:
+  server:
+    restart: always
+    build:
+      context: .
+    env_file:
+      - $ENV
+    expose:
+      - 8001
+    volumes:
+      - .:/app
+    command: >
+      sh -c "cd /app/src
+      && python ./utils/wait_for_elastic.py
+      && python -m uvicorn main:app --reload --host 0.0.0.0 --port 8001"
+    depends_on:
+      elasticsearch_etl:
+        condition: service_healthy
+      redis-sentinel:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      redis-slave:
+        condition: service_started
+      redis-slave-2:
+        condition: service_started
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.fastapi.rule=Host(`api.localhost`)"
+
   redis-sentinel:
     image: bitnami/redis-sentinel:6.2.7
     environment:
@@ -9,6 +40,11 @@ services:
       - redis-slave
     expose:
       - 26379
+    healthcheck:
+      test: redis-cli -p 26379 ping || exit 1
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   redis:
     image: bitnami/redis:6.2.7
@@ -16,7 +52,7 @@ services:
       - REDIS_REPLICATION_MODE=master
       - REDIS_PASSWORD=${NMA_REDIS_PASSWORD}
     ports:
-      - 6379
+      - "6379"
     volumes:
       - redis_master_data:/data
 
@@ -28,7 +64,7 @@ services:
       - REDIS_MASTER_PASSWORD=${NMA_REDIS_PASSWORD}
       - REDIS_PASSWORD=${NMA_REDIS_PASSWORD}
     ports:
-      - 6379
+      - "6379"
     depends_on:
       - redis
     volumes:
@@ -42,7 +78,7 @@ services:
       - REDIS_MASTER_PASSWORD=${NMA_REDIS_PASSWORD}
       - REDIS_PASSWORD=${NMA_REDIS_PASSWORD}
     ports:
-      - 6379
+      - "6379"
     depends_on:
       - redis
     volumes:
@@ -62,29 +98,6 @@ services:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
     depends_on:
       - server
-
-  server:
-    restart: always
-    build:
-      context: .
-    env_file:
-      - $ENV
-    expose:
-      - 8001
-    volumes:
-      - .:/app
-    command: >
-      sh -c "cd /app/src
-      && python ./utils/wait_for_elastic.py
-      && python -m uvicorn main:app --reload --host 0.0.0.0 --port 8001"
-    depends_on:
-      - redis-sentinel
-      - redis
-      - redis-slave
-      - redis-slave-2
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.fastapi.rule=Host(`api.localhost`)"
 
   db_admin:
     image: yandexmiddleteamv1/netflix-admin-db:latest
@@ -126,6 +139,11 @@ services:
       - es_data_etl:/usr/share/elasticsearch/data
     depends_on:
       - redis_etl
+    healthcheck:
+      test: curl -u elastic:elastic -s -f elasticsearch_etl:9200/_cat/health >/dev/null || exit 1
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   kibana_etl:
     image: kibana:7.17.2
