@@ -5,6 +5,7 @@
 - Netflix Admin: https://github.com/ReznikovRoman/netflix-admin
 - Netflix ETL: https://github.com/ReznikovRoman/netflix-etl
 - Netflix Movies API: https://github.com/ReznikovRoman/netflix-movies-api
+- Netflix Auth API: https://github.com/ReznikovRoman/netflix-auth-api
 
 ## Настройка и запуск
 
