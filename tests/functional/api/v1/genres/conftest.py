@@ -4,7 +4,6 @@ import pytest
 
 from src.schemas.genres import GenreDetail
 from tests.functional.api.v1.genres.constants import GENRE_UUID
-from tests.functional.utils.helpers import add_genre_document_to_elastic
 
 
 pytestmark = [pytest.mark.asyncio]
@@ -28,11 +27,11 @@ def genres_dto(model_factory, genre_uuid) -> list[GenreDetail]:
 
 @pytest.fixture
 async def genre_es(elastic, genre_dto):
-    await add_genre_document_to_elastic(elastic, genre_dto)
+    await elastic.index(index="genre", doc_type="_doc", id=genre_dto.uuid, body=genre_dto.dict(), refresh="wait_for")
 
 
 @pytest.fixture
 async def genres_es(elastic, genre_dto, genres_dto):
     genres_dto.append(genre_dto)
     for genre in genres_dto:
-        await add_genre_document_to_elastic(elastic, genre)
+        await elastic.index(index="genre", doc_type="_doc", id=genre.uuid, body=genre.dict(), refresh="wait_for")
