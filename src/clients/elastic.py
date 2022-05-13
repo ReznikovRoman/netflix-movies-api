@@ -39,12 +39,7 @@ class ElasticClient:
     async def search(self, index: str, query: Query, **options) -> list[dict]:
         client = await self.get_client()
         timeout = options.pop("request_timeout", ElasticClient.REQUEST_TIMEOUT)
-        try:
-            docs = await client.search(index=index, body=query, request_timeout=timeout, **options)
-        except ElasticNotFoundError:
-            # XXX: если в эластике нет данного индекса, то выкидывается ошибка `NotFoundError`
-            # в таком случае будем просто возвращать пустой список
-            return []
+        docs = await client.search(index=index, body=query, request_timeout=timeout, **options)
         return self._prepare_documents_list(docs)
 
     async def pre_init_client(self, *args, **kwargs) -> None:
