@@ -60,7 +60,8 @@ class PaginationTestMixin:
         assert len(first_page) == 3, first_page
         assert len(exact_page) > 0
 
-    async def test_empty_response(self):
+    @pytest.mark.usefixtures("elastic")
+    async def test_empty_response(self, elastic):
         """Если объектов нет в основной БД, то должен выводиться пустой список."""
         got = await self.client.get(self.endpoint, params=self.empty_request_params)
 
@@ -183,7 +184,8 @@ class NotFoundTestMixin:
         if self.not_found_endpoint is not None:
             return self.not_found_endpoint
 
-    async def test_not_found(self):
+    @pytest.mark.usefixtures("elastic")
+    async def test_not_found(self, elastic):
         """Если запрашиваемый ресурс не найден, то возвращается ответ с корректным сообщением и 404 статусом."""
         got = await self.client.get(self.get_not_found_endpoint(), expected_status_code=404)
 
