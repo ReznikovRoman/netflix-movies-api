@@ -1,4 +1,3 @@
-import httpx
 import pytest
 import requests
 
@@ -73,9 +72,9 @@ class TestFilmList(
     async def viewer_token(self, settings, auth0_token) -> str:
         base_url = settings.AUTH_BASE_URL
         data = {"email": "viewer@gmail.com", "password": "test"}
-        async with httpx.AsyncClient() as client:
-            await client.post(f"{base_url}/api/v1/auth/register", data=data)
-            credentials = await client.post(f"{base_url}/api/v1/auth/login", data=data)
+        with requests.Session() as client:
+            client.post(f"{base_url}/api/v1/auth/register", data=data)
+            credentials = client.post(f"{base_url}/api/v1/auth/login", data=data)
             access_token = credentials.json()["data"]["access_token"]
             return access_token
 
@@ -86,28 +85,28 @@ class TestFilmList(
         headers = {"Authorization": f"Bearer {auth0_token}"}
 
         # регистрируем пользователя
-        async with httpx.AsyncClient() as client:
-            user_response = await client.post(f"{base_url}/api/v1/auth/register", data=data)
+        with requests.Session() as client:
+            user_response = client.post(f"{base_url}/api/v1/auth/register", data=data)
             if user_response.status_code != 201:  # если пользователь уже есть, то просто получаем access токен
                 # авторизуемся для получения JWT токена
-                credentials = await client.post(f"{base_url}/api/v1/auth/login", data=data)
+                credentials = client.post(f"{base_url}/api/v1/auth/login", data=data)
                 access_token = credentials.json()["data"]["access_token"]
                 return access_token
 
         # получаем id пользователя
-        user_id = await user_response.json()["data"]["id"]
+        user_id = user_response.json()["data"]["id"]
 
-        async with httpx.AsyncClient() as client:
+        with requests.Session() as client:
             # получаем id роли с подпиской
-            roles_response = await client.get(f"{settings.AUTH_BASE_URL}/api/v1/roles", headers=headers)
+            roles_response = client.get(f"{settings.AUTH_BASE_URL}/api/v1/roles", headers=headers)
             roles = roles_response.json()["data"]
             role_id = self._find_subscription_role_id(roles)
 
             # назначаем пользователю роль с подпиской
-            await client.post(f"{base_url}/api/v1/users/{user_id}/roles/{role_id}", headers=headers)
+            client.post(f"{base_url}/api/v1/users/{user_id}/roles/{role_id}", headers=headers)
 
             # авторизуемся для получения JWT токена
-            credentials = await client.post(f"{base_url}/api/v1/auth/login", data=data)
+            credentials = client.post(f"{base_url}/api/v1/auth/login", data=data)
             access_token = credentials.json()["data"]["access_token"]
             return access_token
 
@@ -121,8 +120,8 @@ class TestFilmList(
         }
         headers = {"content-type": "application/json"}
 
-        async with httpx.AsyncClient() as client:
-            got = await client.post(settings.AUTH0_AUTHORIZATION_URL, json=payload, headers=headers)
+        with requests.Session() as client:
+            got = client.post(settings.AUTH0_AUTHORIZATION_URL, json=payload, headers=headers)
 
         access_token = got.json()["access_token"]
         self._access_token = access_token
