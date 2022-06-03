@@ -221,7 +221,7 @@ services:
       timeout: 5s
       retries: 5
 
-  jaeger-auth:
+  jaeger:
     image: jaegertracing/all-in-one:latest
     ports:
       - "5775:5775/udp"
