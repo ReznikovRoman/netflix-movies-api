@@ -43,6 +43,7 @@ class ElasticSearchRepositoryMixin:
 
     def prepare_search_request(
         self, page_size: int, page_number: int, search_query: str | None = None, search_fields: list[str] | None = None,
+        filter_fields: dict[str, str] | None = None,
     ) -> dict:
         request_body = {
             "size": page_size,
@@ -53,7 +54,11 @@ class ElasticSearchRepositoryMixin:
             request_query = {
                 "multi_match": {"query": search_query, "fields": search_fields},
             }
-        request_body["query"] = request_query
+        request_body["query"] = {
+            "bool": {"must": request_query},
+        }
+        if filter_fields is not None:
+            request_body["query"]["bool"]["filter"] = {"term": filter_fields}
         return request_body
 
     @staticmethod

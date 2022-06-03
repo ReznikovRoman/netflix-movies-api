@@ -37,6 +37,17 @@ class Settings(BaseSettings):
     ES_PORT: int = Field(env="NE_ES_PORT")
     ES_RETRY_ON_TIMEOUT: bool = True
 
+    # Netflix Auth
+    AUTH_SERVICE_URL: str
+    AUTH0_DOMAIN: str = Field(env="NAA_AUTH0_DOMAIN")
+    AUTH0_API_AUDIENCE: str = Field(env="NAA_AUTH0_API_AUDIENCE")
+    AUTH0_ISSUER: str = Field(env="NAA_AUTH0_ISSUER")
+    AUTH0_CLIENT_ID: str = Field(env="NAA_AUTH0_CLIENT_ID")
+    AUTH0_CLIENT_SECRET: str = Field(env="NAA_AUTH0_CLIENT_SECRET")
+    AUTH0_AUTHORIZATION_URL: str = Field(env="NAA_AUTH0_AUTHORIZATION_URL")
+    JWT_AUTH_SECRET_KEY: str = Field(env="NAA_SECRET_KEY")
+    JWT_AUTH_ALGORITHM: str = "HS256"
+
     class Config(EnvConfig):
         env_prefix = "NMA_"
         case_sensitive = True

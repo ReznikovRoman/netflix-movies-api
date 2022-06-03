@@ -4,6 +4,7 @@ requests==2.27.1
 httpx==0.22.0
 python-dotenv==0.20.0
 backoff==2.0.1
+python-jose==3.3.0
 
 fastapi==0.75.2
 

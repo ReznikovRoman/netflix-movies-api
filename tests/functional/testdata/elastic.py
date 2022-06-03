@@ -51,6 +51,9 @@ ES_MOVIES_MAPPING = {
         "age_rating": {
             "type": "text",
         },
+        "access_type": {
+            "type": "text",
+        },
         "release_date": {
             "type": "date",
         },
@@ -210,6 +213,9 @@ ES_PERSON_MAPPING = {
                             "type": "float",
                         },
                         "age_rating": {
+                            "type": "text",
+                        },
+                        "access_type": {
                             "type": "text",
                         },
                         "release_date": {

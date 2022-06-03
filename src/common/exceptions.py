@@ -24,3 +24,10 @@ class ImproperlyConfiguredError(NetflixError):
 
     message = "Improperly configured service"
     code = "improperly_configured"
+
+
+class AuthorizationError(NetflixError):
+    """Ошибка при авторизации."""
+
+    message = "Authorization error"
+    code = "authorization_error"

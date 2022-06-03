@@ -29,6 +29,15 @@ class Test(BaseSettings):
     ES_HOST: str = Field(env="NE_ES_HOST")
     ES_PORT: int = Field(env="NE_ES_PORT")
 
+    # Auth
+    AUTH_BASE_URL: str = Field(env="NMA_AUTH_SERVICE_URL")
+    AUTH0_API_AUDIENCE: str = Field(env="NAA_AUTH0_API_AUDIENCE")
+    AUTH0_ISSUER: str = Field(env="NAA_AUTH0_ISSUER")
+    AUTH0_CLIENT_ID: str = Field(env="NAA_AUTH0_CLIENT_ID")
+    AUTH0_CLIENT_SECRET: str = Field(env="NAA_AUTH0_CLIENT_SECRET")
+    AUTH0_AUTHORIZATION_URL: str = Field(env="NAA_AUTH0_AUTHORIZATION_URL")
+    AUTH0_GRANT_TYPE: str = "client_credentials"
+
     class Config(EnvConfig):
         env_prefix = "NMA_"
         case_sensitive = True

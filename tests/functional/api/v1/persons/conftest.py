@@ -2,7 +2,7 @@ import random
 
 import pytest
 
-from src.schemas.films import FilmDetail, FilmList
+from src.schemas.films import FilmAccessType, FilmDetail, FilmList
 from src.schemas.genres import GenreDetail
 from src.schemas.persons import PersonList, PersonShortDetail
 from src.schemas.roles import PersonFullDetail, PersonRoleFilmList
@@ -41,7 +41,12 @@ def person_dto(model_factory, person_uuid) -> PersonShortDetail:
 
 @pytest.fixture
 def person_full_dto(model_factory, person_uuid, film_uuid) -> PersonFullDetail:
-    roles = [PersonRoleFilmList(role="actor", films=[FilmList(title="title", uuid=film_uuid)])]
+    roles = [
+        PersonRoleFilmList(
+            role="actor",
+            films=[FilmList(title="title", uuid=film_uuid, access_type=FilmAccessType.PUBLIC)],
+        ),
+    ]
     return model_factory.create_factory(PersonFullDetail).build(
         uuid=person_uuid, full_name="CustomPerson", roles=roles)
 

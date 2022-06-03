@@ -9,18 +9,22 @@ from .settings import get_settings
 from .testlib import create_anon_client, flush_redis_cache, setup_elastic, teardown_elastic
 
 
-settings = get_settings()
-
-
 if TYPE_CHECKING:
     from asyncio import AbstractEventLoop
 
     from elasticsearch import AsyncElasticsearch
 
+    from .settings import Test
     from .testlib import APIClient
 
-
 pytestmark = [pytest.mark.asyncio]
+
+settings_ = get_settings()
+
+
+@pytest.fixture
+def settings() -> Test:
+    return settings_
 
 
 @pytest.fixture(autouse=True)

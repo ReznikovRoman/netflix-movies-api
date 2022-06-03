@@ -30,7 +30,8 @@ services:
         condition: service_healthy
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.fastapi.rule=Host(`api.localhost`)"
+      - "traefik.http.routers.movies_api.rule=Host(`api-movies.localhost`,`traefik`)"
+      - "traefik.http.routers.movies_api.entrypoints=movies_api"
 
   redis-sentinel:
     image: bitnami/redis-sentinel:6.2.7
@@ -90,14 +91,62 @@ services:
       - "--api.insecure=true"
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
-      - "--entrypoints.web.address=:80"
+      - "--entrypoints.movies_api.address=:80"
+      - "--entrypoints.auth_api.address=:81"
+      - "--tracing.jaeger=true"
+      - "--tracing.jaeger.samplingParam=0"
+      - "--tracing.jaeger.traceContextHeaderName=X-Request-Id"
     ports:
       - "8008:80"
+      - "8009:81"
       - "8081:8080"
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
     depends_on:
       - server
+      - server-auth
+
+  server-auth:
+    platform: linux/amd64
+    restart: always
+    image: yandexmiddleteamv1/netflix-auth-api:latest
+    env_file:
+      - $ENV
+    ports:
+      - "8002:8002"
+    depends_on:
+      db-auth:
+        condition: service_healthy
+      redis-auth:
+        condition: service_healthy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.auth_api.rule=Host(`api-auth.localhost`,`traefik`)"
+      - "traefik.http.routers.auth_api.entrypoints=auth_api"
+
+  redis-auth:
+    image: redis:7.0-alpine
+    expose:
+      - 6379
+    healthcheck:
+      test: redis-cli -p 6379 ping || exit 1
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  db-auth:
+    image: postgres:14.2-alpine
+    environment:
+      - POSTGRES_USER=${NAA_DB_USER}
+      - POSTGRES_PASSWORD=${NAA_DB_PASSWORD}
+      - POSTGRES_DB=${NAA_DB_NAME}
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: pg_isready -d $NAA_DB_NAME -U $NAA_DB_USER
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   test:
     restart: on-failure
@@ -121,3 +170,6 @@ services:
       - traefik
       - server
       - elasticsearch
+      - server-auth
+      - db-auth
+      - redis-auth

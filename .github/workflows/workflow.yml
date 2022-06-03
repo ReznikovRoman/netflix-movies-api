@@ -113,6 +113,36 @@ jobs:
           export NE_ES_HOST=elasticsearch
           export NE_ES_PORT=9200
           export NMA_ES_RETRY_ON_TIMEOUT=1
+          export NMA_AUTH_SERVICE_URL=http://traefik-auth:80
+          export FLASK_APP=main.py
+          export NAA_SECRET_KEY=n_0awe2kaonk9ax2c6nlhxa9hcp71e_b0atajnsaaqzybwk-h4
+          export NAA_SQLALCHEMY_ECHO=1
+          export NAA_PROJECT_BASE_URL=http://api-auth.localhost:8009
+          export NAA_API_V1_STR=/api/v1
+          export NAA_SERVER_HOSTS=http://api-auth.localhost:8009
+          export NAA_SERVER_PORT=8002
+          export NAA_PROJECT_NAME=netflix-auth
+          export NAA_THROTTLE_KEY_PREFIX=limiter:
+          export NAA_THROTTLE_DEFAULT_LIMITS=50/hour
+          export NAA_THROTTLE_USER_REGISTRATION_LIMITS=5/minute
+          export NAA_DEBUG=1
+          export NAA_AUTH0_DOMAIN=dummy.com
+          export NAA_AUTH0_API_AUDIENCE=https://dummy.com
+          export NAA_AUTH0_ISSUER=https://dummy.com/
+          export NAA_AUTH0_CLIENT_ID=change-me
+          export NAA_AUTH0_CLIENT_SECRET=change-me
+          export NAA_AUTH0_AUTHORIZATION_URL=https://dummy.com/oauth/token
+          export NAA_DB_HOST=db-auth
+          export NAA_DB_PORT=5432
+          export NAA_DB_NAME=netflix_auth
+          export NAA_DB_USER=yandex
+          export NAA_DB_PASSWORD=netflix
+          export NAA_REDIS_HOST=redis-auth
+          export NAA_REDIS_PORT=6379
+          export NAA_REDIS_THROTTLE_STORAGE_DB=2
+          export NAA_REDIS_DEFAULT_CHARSET=utf-8
+          export NAA_REDIS_DECODE_RESPONSES=1
+          export NAA_REDIS_RETRY_ON_TIMEOUT=1
           export PYTEST_ADDOPTS="--ignore-glob=tests/functional/*"
           make test
 

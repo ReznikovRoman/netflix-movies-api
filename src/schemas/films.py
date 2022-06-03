@@ -19,6 +19,13 @@ class FilmAgeRating(str, Enum):
     ADULTS = "NC-17"
 
 
+class FilmAccessType(str, Enum):
+    """Доступность фильма для просмотра."""
+
+    PUBLIC = "public"
+    SUBSCRIPTION = "subscription"
+
+
 class FilmDetail(BaseIdOrjsonSchema):
     """Фильм."""
 
@@ -27,6 +34,7 @@ class FilmDetail(BaseIdOrjsonSchema):
     description: str
     release_date: datetime.date
     age_rating: FilmAgeRating
+    access_type: FilmAccessType
     genre: list[GenreDetail]
     actors: list[PersonList]
     writers: list[PersonList]
@@ -38,3 +46,4 @@ class FilmList(BaseIdOrjsonSchema):
 
     title: str
     imdb_rating: float | None
+    access_type: FilmAccessType
