@@ -39,8 +39,7 @@ async def get_films(
     }
     if has_subscription:
         return await film_service.get_all_films(**params)
-    films = await film_service.get_public_films(**params)
-    return films
+    return await film_service.get_public_films(**params)
 
 
 @router.get("/search", response_model=list[FilmList], summary="Поиск по фильмам")

@@ -1,4 +1,4 @@
-from functools import lru_cache
+from functools import lru_cache, partial
 from uuid import UUID
 
 from fastapi import Depends
@@ -24,8 +24,13 @@ class FilmService(CacheServiceMixin):
         page_size: int, page_number: int,
         genre: str | None = None, sort: str | None = None, filter_fields: dict[str, str] | None = None,
     ) -> list[FilmList]:
-        key = await self.repository.make_key(
-            request_params, min_length=self.repository.hashed_params_key_length, prefix="films:list")
+        key_factory = partial(
+            self.repository.make_key,
+            request_params, min_length=self.repository.hashed_params_key_length,
+        )
+        key = await key_factory(prefix="films:list:all")
+        if filter_fields is not None:
+            key = await key_factory(prefix="films:list:public")
         request_body = self.repository.prepare_search_request(
             page_size=page_size,
             page_number=page_number,
