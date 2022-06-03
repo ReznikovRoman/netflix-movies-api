@@ -14,7 +14,8 @@ settings = get_settings()
 
 
 app = FastAPI(
-    title=settings.PROJECT_NAME,
+    title="Netflix Movies API v1",
+    description="АПИ сервиса фильмов для онлайн-кинотеатра",
     servers=[
         {"url": server_host}
         for server_host in settings.SERVER_HOSTS

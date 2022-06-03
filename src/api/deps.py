@@ -1,8 +1,18 @@
 from typing import ClassVar
 
-from fastapi import Query
+from jose import JWTError, jwt
+
+from fastapi import Depends, Query
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from common.constants import DEFAULT_PAGE_SIZE
+from common.exceptions import AuthorizationError
+from core.config import get_settings
+
+
+settings = get_settings()
+
+jwt_scheme = HTTPBearer(auto_error=False)
 
 
 class PageNumberPaginationQueryParams:
@@ -44,3 +54,15 @@ class SortQueryParams:
             sort_param = sort_param.removeprefix(SortQueryParams.API_DESCENDING_CHAR)
             formatted_param = f"{sort_param}{SortQueryParams.ELASTIC_DESCENDING_CHAR}"
         return formatted_param
+
+
+def get_user_roles(token: HTTPAuthorizationCredentials | None = Depends(jwt_scheme)) -> list[str]:
+    """Получение списка ролей пользователя из JWT токена."""
+    if token is None:
+        return []
+    try:
+        payload = jwt.decode(token.credentials, settings.JWT_AUTH_SECRET_KEY, algorithms=[settings.JWT_AUTH_ALGORITHM])
+        roles: list[str] = payload.get("roles")
+    except JWTError:
+        raise AuthorizationError
+    return roles
