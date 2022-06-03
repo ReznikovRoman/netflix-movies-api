@@ -115,7 +115,7 @@ jobs:
           export NMA_ES_RETRY_ON_TIMEOUT=1
           export NMA_AUTH_SERVICE_URL=http://traefik-auth:80
           export FLASK_APP=main.py
-          export NAA_SECRET_KEY=n_0*we^k^onk9$@2c6nlh)=9hcp71e*b0(t^jn=$!qzybwk-h4
+          export NAA_SECRET_KEY=n_0*we^k^onk9$@2c6nlh)a9hcp71e*b0(t^jns$!qzybwk-h4
           export NAA_SQLALCHEMY_ECHO=1
           export NAA_PROJECT_BASE_URL=http://api-auth.localhost:8009
           export NAA_API_V1_STR=/api/v1
