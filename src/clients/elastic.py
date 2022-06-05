@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 class ElasticClient:
     """Клиент для работы с Elasticsearch."""
 
-    REQUEST_TIMEOUT: ClassVar[int] = 5
+    REQUEST_TIMEOUT: ClassVar[int] = 5  # 5 seconds
 
     async def _get_client(self) -> AsyncElasticsearch:
         return elastic.es

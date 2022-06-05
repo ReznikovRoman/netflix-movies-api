@@ -24,6 +24,8 @@ class Settings(BaseSettings):
     PROJECT_NAME: str
     DEBUG: bool = False
     PROJECT_BASE_URL: str
+    CACHE_DEFAULT_TTL: int = 5 * 60  # 5 minutes
+    CACHE_HASHED_KEY_LENGTH: int = 10
 
     # Redis
     REDIS_SENTINELS: Union[str, list[str]]

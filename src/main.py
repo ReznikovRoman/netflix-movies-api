@@ -6,6 +6,7 @@ from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
 
 from api.v1.urls import api_router
+from containers import Container
 from core.config import get_settings
 from db import elastic, redis_sentinel
 
@@ -13,18 +14,29 @@ from db import elastic, redis_sentinel
 settings = get_settings()
 
 
-app = FastAPI(
-    title="Netflix Movies API v1",
-    description="АПИ сервиса фильмов для онлайн-кинотеатра",
-    servers=[
-        {"url": server_host}
-        for server_host in settings.SERVER_HOSTS
-    ],
-    docs_url=f"{settings.API_V1_STR}/docs",
-    openapi_url=f"{settings.API_V1_STR}/openapi.json",
-    default_response_class=ORJSONResponse,
-    debug=settings.DEBUG,
-)
+def create_app() -> FastAPI:
+    container = Container()
+    container.config.from_pydantic(settings=settings)
+
+    app_ = FastAPI(
+        title="Netflix Movies API v1",
+        description="АПИ сервиса фильмов для онлайн-кинотеатра",
+        servers=[
+            {"url": server_host}
+            for server_host in settings.SERVER_HOSTS
+        ],
+        docs_url=f"{settings.API_V1_STR}/docs",
+        openapi_url=f"{settings.API_V1_STR}/openapi.json",
+        default_response_class=ORJSONResponse,
+        debug=settings.DEBUG,
+    )
+    app_.container = container
+
+    app_.include_router(api_router, prefix=settings.API_V1_STR)
+    return app_
+
+
+app = create_app()
 
 
 @app.on_event("startup")
@@ -48,6 +60,3 @@ async def shutdown():
     for sentinel in redis_sentinel.redis_sentinel.sentinels:
         await sentinel.close()
     await elastic.es.close()
-
-
-app.include_router(api_router, prefix=settings.API_V1_STR)
