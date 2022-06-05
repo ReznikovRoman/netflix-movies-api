@@ -1,54 +1,76 @@
 from __future__ import annotations
 
-import base64
-import hashlib
-from typing import TYPE_CHECKING, ClassVar
+from abc import ABC, abstractmethod
+from typing import TYPE_CHECKING, Callable
 
-import orjson
 from pydantic import parse_obj_as
 
 from common.types import ApiSchema, ApiSchemaClass
-from db.storage.base import AsyncNoSQLStorage
 
 
 if TYPE_CHECKING:
-    from common.types import Id
-    from db.cache.base import AsyncCache
+    from db.cache.base import CacheRepository
+    from db.storage.base import AsyncNoSQLStorage
 
 
-class ElasticRepositoryMixin:
-    """Миксин для работы с Elasticsearch."""
+class NoSQLStorageRepository(ABC):
+    """Базовый репозиторий для работы с данными из NoSQL хранилища."""
 
-    es_index_name: ClassVar[str]
+    schema_cls: ApiSchemaClass
 
-    storage: AsyncNoSQLStorage
+    @abstractmethod
+    async def get_by_id(self, doc_id: str, schema_cls: ApiSchemaClass) -> ApiSchema:
+        """Получение документа по `doc_id`."""
 
-    async def get_item_from_storage(self, document_id: Id, schema_class: ApiSchemaClass) -> ApiSchema:
-        doc = await self.storage.get_by_id(self.es_index_name, document_id)
-        return schema_class(**doc)
+    @abstractmethod
+    async def get_list(self, schema_cls: ApiSchemaClass, **search_options) -> list[ApiSchema]:
+        """Получение списка документов."""
 
-    async def search_items_in_storage(
-        self, schema_class: ApiSchemaClass, query: dict, index_name: str, **search_options,
-    ) -> list[ApiSchema]:
-        docs = await self.storage.search(index_name, query, **search_options)
-        return parse_obj_as(list[schema_class], docs)
+    @abstractmethod
+    async def search(self, query: dict, schema_cls: ApiSchemaClass, **search_options) -> list[ApiSchema]:
+        """Поиск документов в хранилище."""
 
-    async def get_all_items_from_storage(self, schema_class: ApiSchemaClass, **search_options) -> list[ApiSchema]:
-        docs = await self.storage.get_all(self.es_index_name, **search_options)
-        return parse_obj_as(list[schema_class], docs)
+    @abstractmethod
+    def prepare_search_request(self, *args, **options) -> dict:
+        """Подготовка поискового запроса к БД."""
+
+    @staticmethod
+    @abstractmethod
+    def calc_offset(page_size: int, page_number: int) -> int:
+        """Подсчет offset'а для запроса в БД на основе номера страницы `page_number`."""
 
 
-class ElasticSearchRepositoryMixin:
-    """Миксин для работы с фильтрацией, пагинацией и сортировкой в Elasticsearch."""
+class ElasticRepository(NoSQLStorageRepository):
+    """Репозиторий для работы с данными из Elasticsearch."""
 
-    def prepare_search_request(
-        self, page_size: int, page_number: int, search_query: str | None = None, search_fields: list[str] | None = None,
-        filter_fields: dict[str, str] | None = None,
-    ) -> dict:
-        request_body = {
-            "size": page_size,
-            "from": self.calc_offset(page_size, page_number),
-        }
+    def __init__(self, storage: AsyncNoSQLStorage, index_name: str):
+        self.storage = storage
+        self.index_name = index_name
+
+    async def get_by_id(self, doc_id: str, schema_cls: ApiSchemaClass) -> ApiSchema:
+        doc = await self.storage.get_by_id(self.index_name, doc_id)
+        return schema_cls(**doc)
+
+    async def get_list(self, schema_cls: ApiSchemaClass, **search_options) -> list[ApiSchema]:
+        docs = await self.storage.get_all(self.index_name, **search_options)
+        return parse_obj_as(list[schema_cls], docs)
+
+    async def search(self, query: dict, schema_cls: ApiSchemaClass, **search_options) -> list[ApiSchema]:
+        docs = await self.storage.search(self.index_name, query, **search_options)
+        return parse_obj_as(list[schema_cls], docs)
+
+    def prepare_search_request(self, *args, **options) -> dict:
+        page_size: int | None = options.pop("page_size", None)
+        page_number: int | None = options.pop("page_number", None)
+        search_query: str | None = options.pop("search_query", None)
+        search_fields: list[str] | None = options.pop("search_fields", None)
+        filter_fields: dict[str, str] | None = options.pop("filter_fields", None)
+
+        request_body = {}
+        if page_size is not None and page_number is not None:
+            request_body.update({
+                "size": page_size, "from": self.calc_offset(page_size, page_number),
+            })
         request_query = {"match_all": {}}
         if search_query is not None:
             request_query = {
@@ -57,67 +79,69 @@ class ElasticSearchRepositoryMixin:
         request_body["query"] = {
             "bool": {"must": request_query},
         }
-        if filter_fields is not None:
+        if filter_fields:
             request_body["query"]["bool"]["filter"] = {"term": filter_fields}
         return request_body
 
     @staticmethod
     def calc_offset(page_size: int, page_number: int) -> int:
-        """Считает offset для запроса в Elasticsearch на основе  номера страницы `page_number`."""
         if page_number <= 1:
             return 0
         offset = (page_size * page_number) - page_size
         return offset
 
 
-class CacheRepositoryMixin:
-    """Миксин для работы с кэшом."""
+class ElasticCacheRepository(NoSQLStorageRepository):
+    """Репозиторий для работы с данными из Elasticsearch и кэша."""
 
-    cache: AsyncCache
+    def __init__(
+        self,
+        elastic_repository: ElasticRepository,
+        cache_repository: CacheRepository,
+        key_factory: Callable[..., str],
+    ):
+        self.elastic_repository = elastic_repository
+        self.cache_repository = cache_repository
+        self.key_factory = key_factory
 
-    cache_ttl: ClassVar[int] = 5 * 60  # 5 минут
+    async def get_by_id(self, doc_id: str, schema_cls: ApiSchemaClass) -> ApiSchema:
+        """Получения документа по `doc_id`."""
+        key = self.key_factory(doc_id=doc_id, schema_cls=schema_cls)
+        item = await self.cache_repository.get_item(key, schema_cls)
+        if item is not None:
+            return item
 
-    async def get_items_from_cache(self, key: str, schema_class: ApiSchemaClass) -> list[ApiSchema] | None:
-        items = await self.cache.get(key)
-        if items is None:
-            return None
-        return [schema_class.parse_raw(item) for item in orjson.loads(items)]
+        item = await self.elastic_repository.get_by_id(doc_id, schema_cls)
 
-    async def get_item_from_cache(self, key: str, schema_class: ApiSchemaClass) -> ApiSchema | None:
-        item = await self.cache.get(key)
-        if item is None:
-            return None
-        return schema_class.parse_raw(orjson.loads(item))
+        await self.cache_repository.save_item(key, item)
+        return item
 
-    async def put_item_to_cache(self, key: str, item: ApiSchema) -> None:
-        serialized_item = orjson.dumps(item.json())
-        await self.cache.set(key, serialized_item, timeout=self.cache_ttl)
+    async def get_list(self, schema_cls: ApiSchemaClass, **search_options) -> list[ApiSchema]:
+        cache_options: dict = search_options.pop("cache_options", {})
+        key = self.key_factory(**cache_options)
+        items = await self.cache_repository.get_list(key, schema_cls)
+        if items is not None:
+            return items
 
-    async def put_items_to_cache(self, key: str, items: list[ApiSchema]) -> None:
-        serialized_items = orjson.dumps([item.json() for item in items])
-        await self.cache.set(key, serialized_items, timeout=self.cache_ttl)
+        items = await self.elastic_repository.get_list(schema_cls, **search_options)
 
-    async def make_key(
-        self, key_to_hash: str, *, min_length: int, prefix: str | None = None, suffix: str = None,
-    ) -> str:
-        """Получение ключа для кэша."""
-        hashed_key = self.calculate_hash_for_given_str(key_to_hash, min_length)
-        key = self.make_key_with_affixes(hashed_key, prefix, suffix)
-        return key
+        await self.cache_repository.save_items(key, items)
+        return items
 
-    @staticmethod
-    def calculate_hash_for_given_str(given: str, length: int) -> str:
-        url_hash = hashlib.sha256(given.encode())
-        hash_str = base64.urlsafe_b64encode(url_hash.digest()).decode("ascii")
-        return hash_str[:length]
+    async def search(self, query: dict, schema_cls: ApiSchemaClass, **search_options) -> list[ApiSchema]:
+        cache_options: dict = search_options.pop("cache_options", {})
+        key = self.key_factory(**cache_options)
+        items = await self.cache_repository.get_list(key, schema_cls)
+        if items is not None:
+            return items
 
-    @staticmethod
-    def make_key_with_affixes(base: str, prefix: str | None = None, suffix: str | None = None) -> str:
-        key = base
-        if prefix is not None:
-            prefix = prefix.removesuffix(":")
-            key = f"{prefix}:{key}"
-        if suffix is not None:
-            suffix = suffix.removeprefix(":")
-            key = f"{key}:{suffix}"
-        return key
+        items = await self.elastic_repository.search(query, schema_cls, **search_options)
+
+        await self.cache_repository.save_items(key, items)
+        return items
+
+    def prepare_search_request(self, *args, **options) -> dict:
+        return self.elastic_repository.prepare_search_request(*args, **options)
+
+    def calc_offset(self, page_size: int, page_number: int) -> int:
+        return self.elastic_repository.calc_offset(page_size, page_number)

@@ -1,29 +1,26 @@
-from functools import lru_cache
-from typing import ClassVar
+from uuid import UUID
 
-from fastapi import Depends
-
-from db.cache import AsyncCache, get_redis_cache
-from db.storage import AsyncNoSQLStorage, get_elastic_storage
-
-from .base import CacheRepositoryMixin, ElasticRepositoryMixin
+from repositories.base import NoSQLStorageRepository
+from schemas.genres import GenreDetail
 
 
-class GenreRepository(ElasticRepositoryMixin, CacheRepositoryMixin):
-    """Репозиторий для работы с данными Жанров."""
+class GenreRepository:
+    """Репозиторий для работы с данными жанров."""
 
-    es_index_name: ClassVar[str] = "genre"
+    def __init__(self, storage_repository: NoSQLStorageRepository):
+        self.storage_repository = storage_repository
 
-    cache_ttl: ClassVar[int] = 5 * 60  # 5 минут
+    async def get_by_id(self, genre_id: UUID) -> GenreDetail:
+        genre = await self.storage_repository.get_by_id(str(genre_id), GenreDetail)
+        return genre
 
-    def __init__(self, storage: AsyncNoSQLStorage, cache: AsyncCache):
-        self.storage = storage
-        self.cache = cache
+    async def get_list(self) -> list[GenreDetail]:
+        genres = await self.storage_repository.get_list(GenreDetail)
+        return genres
 
 
-@lru_cache()
-def get_genre_repository(
-        redis: AsyncCache = Depends(get_redis_cache),
-        storage: AsyncNoSQLStorage = Depends(get_elastic_storage),
-) -> GenreRepository:
-    return GenreRepository(storage, redis)
+def genre_key_factory(*args, **kwargs) -> str:
+    genre_id: str | None = kwargs.pop("doc_id", None)
+    if genre_id is not None:
+        return f"genres:{genre_id}"
+    return "genres:list"

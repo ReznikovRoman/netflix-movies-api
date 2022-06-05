@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from functools import cached_property
+from datetime import timedelta
 from typing import TYPE_CHECKING, Any
 
 from clients.redis_cache import RedisCacheClient
@@ -15,27 +15,19 @@ if TYPE_CHECKING:
 class RedisCache(AsyncCache):
     """Кэш с использованием Redis."""
 
-    def __init__(self, service_name: str, params: dict[str, Any] = None, default_timeout: seconds | None = None):
-        self.default_timeout = default_timeout
-        self.service_name = service_name
-
-        self.params = {}
-        if params is not None:
-            self.params = params
-
-        self._class = RedisCacheClient
-
-    @cached_property
-    def _cache(self):
-        return self._class(service_name=self.service_name, connection_options=self.params)
+    def __init__(self, client: RedisCacheClient, default_ttl: seconds | None = None):
+        self.client = client
+        self.default_ttl = default_ttl
 
     async def get(self, key: str, default: Any | None = None) -> Any:
-        return await self._cache.get(key, default)
+        return await self.client.get(key, default)
 
-    async def set(self, key: str, data: Any, *, timeout: seconds | None = None) -> bool:
-        return await self._cache.set(key, data, timeout=self.get_timeout(timeout))
+    async def set(self, key: str, data: Any, *, ttl: seconds | None = None) -> bool:
+        return await self.client.set(key, data, timeout=self.get_ttl(ttl))
 
-    def get_timeout(self, timeout: seconds | None = None) -> int | None:
-        if self.default_timeout is not None:
-            timeout = self.default_timeout
-        return None if timeout is None else max(0, int(timeout))
+    def get_ttl(self, ttl: seconds | timedelta | None = None) -> seconds | timedelta | None:
+        if ttl is None and self.default_ttl is not None:
+            return self.default_ttl
+        if isinstance(ttl, timedelta):
+            return ttl
+        return None if ttl is None else max(0, int(ttl))
