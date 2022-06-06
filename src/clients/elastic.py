@@ -33,7 +33,7 @@ class ElasticClient:
         try:
             doc = await client.get(index=index, id=str(document_id), request_timeout=ElasticClient.REQUEST_TIMEOUT)
         except ElasticNotFoundError:
-            raise NotFoundError()
+            raise NotFoundError
         return doc["_source"]
 
     async def search(self, index: str, query: Query, **options) -> list[dict]:
