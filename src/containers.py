@@ -75,7 +75,7 @@ class Container(containers.DeclarativeContainer):
     )
 
     # Domain -> Films
-    film_key_builder = providers.Callable(
+    film_key_factory_ = providers.Callable(
         film_key_factory,
         key_builder=cache_key_builder,
         min_length=config.CACHE_HASHED_KEY_LENGTH,
@@ -91,12 +91,12 @@ class Container(containers.DeclarativeContainer):
                 index_name="movies",
             ),
             cache_repository=cache_repository,
-            key_factory=film_key_builder.provider,
+            key_factory=film_key_factory_.provider,
         ),
     )
 
     # Domain -> Persons
-    person_key_builder = providers.Callable(
+    person_key_factory_ = providers.Callable(
         person_key_factory,
         key_builder=cache_key_builder,
         min_length=config.CACHE_HASHED_KEY_LENGTH,
@@ -112,7 +112,7 @@ class Container(containers.DeclarativeContainer):
                 index_name="person",
             ),
             cache_repository=cache_repository,
-            key_factory=person_key_builder.provider,
+            key_factory=person_key_factory_.provider,
         ),
         film_repository=film_repository,
     )

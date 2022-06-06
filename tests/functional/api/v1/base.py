@@ -189,4 +189,4 @@ class NotFoundTestMixin:
         """Если запрашиваемый ресурс не найден, то возвращается ответ с корректным сообщением и 404 статусом."""
         got = await self.client.get(self.get_not_found_endpoint(), expected_status_code=404)
 
-        assert "not found" in got["detail"]
+        assert "error" in got

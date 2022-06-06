@@ -2,11 +2,9 @@ from uuid import UUID
 
 from dependency_injector.wiring import Provide, inject
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
+from fastapi import APIRouter, Depends, Query, Request
 
-from api.constants import MESSAGE
 from api.deps import PageNumberPaginationQueryParams, SortQueryParams, get_user_roles
-from common.exceptions import NotFoundError
 from containers import Container
 from repositories.films import FilmRepository
 from schemas.films import FilmDetail, FilmList
@@ -76,8 +74,5 @@ async def get_film(
     film_repository: FilmRepository = Depends(Provide[Container.film_repository]),
 ):
     """Получение фильма по `uuid`."""
-    try:
-        film = await film_repository.get_by_id(uuid)
-    except NotFoundError:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=MESSAGE.FILM_NOT_FOUND.value)
+    film = await film_repository.get_by_id(uuid)
     return film

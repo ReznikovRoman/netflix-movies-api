@@ -2,10 +2,8 @@ from uuid import UUID
 
 from dependency_injector.wiring import Provide, inject
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends
 
-from api.constants import MESSAGE
-from common.exceptions import NotFoundError
 from containers import Container
 from repositories.genres import GenreRepository
 from schemas.genres import GenreDetail
@@ -21,10 +19,7 @@ async def get_genre(
     genre_repository: GenreRepository = Depends(Provide[Container.genre_repository]),
 ):
     """Получение жанра по `uuid`."""
-    try:
-        genre = await genre_repository.get_by_id(uuid)
-    except NotFoundError:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=MESSAGE.GENRE_NOT_FOUND.value)
+    genre = await genre_repository.get_by_id(uuid)
     return genre
 
 

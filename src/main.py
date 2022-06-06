@@ -2,10 +2,11 @@ import aioredis
 import aioredis.sentinel
 from elasticsearch import AsyncElasticsearch
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.responses import ORJSONResponse
 
 from api.v1.urls import api_router
+from common.exceptions import NetflixError
 from containers import Container
 from core.config import get_settings
 from db import elastic, redis_sentinel
@@ -53,6 +54,11 @@ async def startup():
         retry_on_timeout=settings.ES_RETRY_ON_TIMEOUT,
         request_timeout=30,
     )
+
+
+@app.exception_handler(NetflixError)
+async def project_exception_handler(request: Request, exc: NetflixError):
+    return ORJSONResponse(status_code=exc.status_code, content=exc.to_dict())
 
 
 @app.on_event("shutdown")

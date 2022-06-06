@@ -2,11 +2,9 @@ from uuid import UUID
 
 from dependency_injector.wiring import Provide, inject
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
+from fastapi import APIRouter, Depends, Query, Request
 
-from api.constants import MESSAGE
 from api.deps import PageNumberPaginationQueryParams
-from common.exceptions import NotFoundError
 from containers import Container
 from repositories.persons import PersonRepository
 from schemas.films import FilmList
@@ -53,10 +51,7 @@ async def get_person(
     person_repository: PersonRepository = Depends(Provide[Container.person_repository]),
 ):
     """Получение персоны по `uuid` без разбиения фильмов по ролям."""
-    try:
-        person = await person_repository.get_by_id(uuid)
-    except NotFoundError:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=MESSAGE.PERSON_NOT_FOUND.value)
+    person = await person_repository.get_by_id(uuid)
     return person
 
 
@@ -67,10 +62,7 @@ async def get_person_detailed(
     person_repository: PersonRepository = Depends(Provide[Container.person_repository]),
 ):
     """Получение персоны по `uuid` с разбиением фильмов по ролям."""
-    try:
-        person = await person_repository.get_by_id_detailed(uuid)
-    except NotFoundError:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=MESSAGE.PERSON_NOT_FOUND.value)
+    person = await person_repository.get_by_id_detailed(uuid)
     return person
 
 
@@ -81,8 +73,5 @@ async def get_person_films(
     person_repository: PersonRepository = Depends(Provide[Container.person_repository]),
 ):
     """Получение фильмов персоны по её `uuid`."""
-    try:
-        person_films = await person_repository.get_person_films(uuid)
-    except NotFoundError:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=MESSAGE.PERSON_NOT_FOUND.value)
+    person_films = await person_repository.get_person_films(uuid)
     return person_films
