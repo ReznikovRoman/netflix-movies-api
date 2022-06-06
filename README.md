@@ -2,10 +2,18 @@
 АПИ для онлайн-кинотеатра _Netflix_.
 
 ## Сервисы
-- Netflix Admin: https://github.com/ReznikovRoman/netflix-admin
-- Netflix ETL: https://github.com/ReznikovRoman/netflix-etl
-- Netflix Movies API: https://github.com/ReznikovRoman/netflix-movies-api
-- Netflix Auth API: https://github.com/ReznikovRoman/netflix-auth-api
+- Netflix Admin:
+  - Панель администратора для управления онлайн-кинотеатром (редактирование фильмов, жанров, актеров)
+  - https://github.com/ReznikovRoman/netflix-admin
+- Netflix ETL:
+  - ETL пайплайн для синхронизации данных между БД сервиса Netflix Admin и Elasticsearch
+  - https://github.com/ReznikovRoman/netflix-etl
+- Netflix Movies API:
+  - АПИ фильмов
+  - https://github.com/ReznikovRoman/netflix-movies-api
+- Netflix Auth API:
+  - Сервис авторизации - управление пользователями и ролями
+  - https://github.com/ReznikovRoman/netflix-auth-api
 
 ## Настройка и запуск
 
