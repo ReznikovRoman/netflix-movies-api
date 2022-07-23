@@ -17,6 +17,9 @@
 - Netflix UGC:
   - Сервис для работы с пользовательским контентом
   - https://github.com/ReznikovRoman/netflix-ugc
+- Netflix Notifications:
+  - Сервис для отправки уведомлений
+  - https://github.com/ReznikovRoman/netflix-notifications
 
 ## Настройка и запуск
 
