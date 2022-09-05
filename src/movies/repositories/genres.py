@@ -1,7 +1,12 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 from uuid import UUID
 
-from movies.repositories.base import NoSQLStorageRepository
 from movies.schemas.genres import GenreDetail
+
+if TYPE_CHECKING:
+    from movies.infrastructure.db.repositories import NoSQLStorageRepository
 
 
 class GenreRepository:

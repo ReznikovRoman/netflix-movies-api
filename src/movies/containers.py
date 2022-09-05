@@ -1,11 +1,7 @@
 from dependency_injector import containers, providers
 
 from movies.core.logging import configure_logger
-from movies.db.cache.base import CacheKeyBuilder, CacheRepository
-from movies.db.cache.redis import RedisCache
-from movies.db.storage.elastic import ElasticStorage
-from movies.infrastructure.db import elastic, redis
-from movies.repositories.base import ElasticCacheRepository, ElasticRepository
+from movies.infrastructure.db import cache, elastic, redis, repositories, storage
 from movies.repositories.films import FilmRepository, film_key_factory
 from movies.repositories.genres import GenreRepository, genre_key_factory
 from movies.repositories.persons import PersonRepository, person_key_factory
@@ -49,6 +45,7 @@ class Container(containers.DeclarativeContainer):
 
     redis_client = providers.Singleton(
         redis.RedisClient,
+        sentinel_client=redis_sentinel_connection,
         service_name=config.REDIS_MASTER_SET,
         connection_options=providers.Dict(
             dict_={
@@ -57,34 +54,34 @@ class Container(containers.DeclarativeContainer):
                 "retry_on_timeout": config.REDIS_RETRY_ON_TIMEOUT,
             },
         ),
-        sentinel_client=redis_sentinel_connection,
     )
 
     redis_cache = providers.Singleton(
-        RedisCache,
+        cache.RedisCache,
         client=redis_client,
         default_ttl=config.CACHE_DEFAULT_TTL,
     )
 
-    cache_key_builder = providers.Singleton(CacheKeyBuilder)
-
-    elastic_storage = providers.Singleton(
-        ElasticStorage,
-        client=elastic_client,
-    )
-
     cache_repository = providers.Singleton(
-        CacheRepository,
+        repositories.CacheRepository,
         cache=redis_cache,
     )
 
+    cache_key_builder = providers.Singleton(cache.CacheKeyBuilder)
+
+    elastic_storage = providers.Singleton(
+        storage.ElasticStorage,
+        client=elastic_client,
+    )
+
     # Domain -> Genres
+
     genre_repository = providers.Singleton(
         GenreRepository,
         storage_repository=providers.Singleton(
-            ElasticCacheRepository,
+            repositories.ElasticCacheRepository,
             elastic_repository=providers.Singleton(
-                ElasticRepository,
+                repositories.ElasticRepository,
                 storage=elastic_storage,
                 index_name="genre",
             ),
@@ -94,6 +91,7 @@ class Container(containers.DeclarativeContainer):
     )
 
     # Domain -> Films
+
     film_key_factory_ = providers.Callable(
         film_key_factory,
         key_builder=cache_key_builder,
@@ -103,9 +101,9 @@ class Container(containers.DeclarativeContainer):
     film_repository = providers.Singleton(
         FilmRepository,
         storage_repository=providers.Singleton(
-            ElasticCacheRepository,
+            repositories.ElasticCacheRepository,
             elastic_repository=providers.Singleton(
-                ElasticRepository,
+                repositories.ElasticRepository,
                 storage=elastic_storage,
                 index_name="movies",
             ),
@@ -115,6 +113,7 @@ class Container(containers.DeclarativeContainer):
     )
 
     # Domain -> Persons
+
     person_key_factory_ = providers.Callable(
         person_key_factory,
         key_builder=cache_key_builder,
@@ -124,9 +123,9 @@ class Container(containers.DeclarativeContainer):
     person_repository = providers.Singleton(
         PersonRepository,
         storage_repository=providers.Singleton(
-            ElasticCacheRepository,
+            repositories.ElasticCacheRepository,
             elastic_repository=providers.Singleton(
-                ElasticRepository,
+                repositories.ElasticRepository,
                 storage=elastic_storage,
                 index_name="person",
             ),
@@ -137,6 +136,7 @@ class Container(containers.DeclarativeContainer):
     )
 
     # Domain -> Users
+
     user_service = providers.Singleton(UserService)
 
 

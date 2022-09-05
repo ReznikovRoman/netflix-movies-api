@@ -24,7 +24,7 @@ class RedisClient:
     """Асинхронный клиент для работы с Redis."""
 
     def __init__(
-        self, service_name: str, connection_options: dict[str, Any], sentinel_client: aioredis.sentinel.Sentinel,
+        self, sentinel_client: aioredis.sentinel.Sentinel, service_name: str, connection_options: dict[str, Any],
     ) -> None:
         self.service_name = service_name
         self.connection_options = connection_options

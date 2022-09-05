@@ -5,11 +5,11 @@ from typing import TYPE_CHECKING, Callable
 
 from pydantic import parse_obj_as
 
-from movies.common.types import ApiSchema, ApiSchemaClass
-
 if TYPE_CHECKING:
-    from movies.db.cache.base import CacheRepository
-    from movies.db.storage.base import AsyncNoSQLStorage
+    from movies.common.types import ApiSchema, ApiSchemaClass
+
+    from ..storage import AsyncNoSQLStorage
+    from .cache import CacheRepository
 
 
 class NoSQLStorageRepository(ABC):

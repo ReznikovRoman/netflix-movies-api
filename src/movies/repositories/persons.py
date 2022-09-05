@@ -1,14 +1,18 @@
-from typing import ClassVar, Sequence
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, ClassVar, Sequence
 from uuid import UUID
 
-from movies.common.types import ApiSchemaClass
-from movies.db.cache.base import CacheKeyBuilder
 from movies.schemas.films import FilmList
 from movies.schemas.persons import PersonList, PersonShortDetail
 from movies.schemas.roles import PersonFullDetail
 
-from .base import NoSQLStorageRepository
 from .films import FilmRepository
+
+if TYPE_CHECKING:
+    from movies.common.types import ApiSchemaClass
+    from movies.infrastructure.db.cache import CacheKeyBuilder
+    from movies.infrastructure.db.repositories import NoSQLStorageRepository
 
 
 class PersonRepository:
