@@ -15,9 +15,9 @@ class GenreRepository:
     def __init__(self, storage_repository: NoSQLStorageRepository) -> None:
         self.storage_repository = storage_repository
 
-    async def get_by_id(self, genre_id: UUID) -> GenreDetail:
+    async def get_by_id(self, genre_id: UUID, /) -> GenreDetail:
         """Получение жанра по ID."""
-        return await self.storage_repository.get_by_id(str(genre_id), GenreDetail)
+        return await self.storage_repository.get_by_id(str(genre_id), schema_cls=GenreDetail)
 
     async def get_list(self) -> list[GenreDetail]:
         """Получение списка всех жанров."""

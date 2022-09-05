@@ -22,17 +22,17 @@ class PersonRepository:
         self.storage_repository = storage_repository
         self.film_repository = film_repository
 
-    async def get_by_id(self, person_id: UUID) -> PersonShortDetail:
+    async def get_by_id(self, person_id: UUID, /) -> PersonShortDetail:
         """Получение персоны по ID."""
-        return await self.storage_repository.get_by_id(str(person_id), PersonShortDetail)
+        return await self.storage_repository.get_by_id(str(person_id), schema_cls=PersonShortDetail)
 
-    async def get_by_id_detailed(self, person_id: UUID) -> PersonFullDetail:
+    async def get_by_id_detailed(self, person_id: UUID, /) -> PersonFullDetail:
         """Получение полной информации о персоне по ID."""
         from movies.domain.roles.schemas import PersonFullDetail
 
-        return await self.storage_repository.get_by_id(str(person_id), PersonFullDetail)
+        return await self.storage_repository.get_by_id(str(person_id), schema_cls=PersonFullDetail)
 
-    async def get_all(self, url: str, page_size: int, page_number: int) -> list[PersonList]:
+    async def get_all(self, *, url: str, page_size: int, page_number: int) -> list[PersonList]:
         """Получение списка всех персон."""
         search_options = {
             "cache_options": {"base_key": url, "prefix": "persons:list"},
@@ -52,7 +52,7 @@ class PersonRepository:
         search_query = self.storage_repository.prepare_search_request(**request_options)
         return await self.storage_repository.search(search_query, PersonShortDetail, **search_options)
 
-    async def get_person_films(self, person_id: UUID) -> list[FilmList]:
+    async def get_person_films(self, person_id: UUID, /) -> list[FilmList]:
         """Получение фильмов с участием персоны `person_id`."""
         from movies.domain.films.schemas import FilmList
 
@@ -65,7 +65,7 @@ class PersonRepository:
             search_query, FilmList, **search_options)
 
     @staticmethod
-    def prepare_films_search_request(person_id: str) -> dict:
+    def prepare_films_search_request(person_id: str, /) -> dict:
         """Запрос в Elasticsearch на получение фильмов персоны."""
         query = {
             "fields": [

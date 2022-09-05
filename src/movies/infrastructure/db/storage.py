@@ -13,7 +13,7 @@ class AsyncNoSQLStorage(ABC):
     """Асинхронная NoSQL база данных."""
 
     @abstractmethod
-    async def get_by_id(self, collection: str, document_id: Id, *args, **kwargs) -> Any:
+    async def get_by_id(self, document_id: Id, /, *args, collection: str, **kwargs) -> Any:
         """Получение записи из БД по ID `instance_id`."""
 
     @abstractmethod
@@ -31,8 +31,8 @@ class ElasticStorage(AsyncNoSQLStorage):
     def __init__(self, client: ElasticClient) -> None:
         self.client = client
 
-    async def get_by_id(self, collection: str, document_id: Id, *args, **kwargs) -> dict:
-        return await self.client.get_by_id(collection, document_id)
+    async def get_by_id(self, document_id: Id, /, *args, collection: str, **kwargs) -> dict:
+        return await self.client.get_by_id(document_id, index=collection)
 
     async def search(self, collection: str, query: Query, *args, **kwargs) -> list[dict]:
         return await self.client.search(collection, query, **kwargs)

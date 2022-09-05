@@ -32,11 +32,11 @@ class RedisClient:
 
     async def get_client(self, key: str | None = None, *, write: bool = False) -> aioredis.Redis:
         await self.pre_init_client()
-        client = await self._get_client(write)
+        client = await self._get_client(write=write)
         await self.post_init_client(client)
         return client
 
-    async def get(self, key: str, default: Any | None = None) -> Any:
+    async def get(self, key: str, /, *, default: Any | None = None) -> Any:
         client = await self.get_client(key)
         value = await client.get(key)
         return default if value is None else value
@@ -50,10 +50,10 @@ class RedisClient:
     async def pre_init_client(self, *args, **kwargs):
         """Вызывается до начала инициализации клиента Redis."""
 
-    async def post_init_client(self, client: aioredis.Redis, *args, **kwargs) -> None:
+    async def post_init_client(self, client: aioredis.Redis, /, *args, **kwargs) -> None:
         """Вызывается после инициализации клиента Redis."""
 
-    async def _get_client(self, write: bool = False) -> aioredis.Redis:
+    async def _get_client(self, *, write: bool = False) -> aioredis.Redis:
         if write:
             return await self.sentinel_client.master_for(self.service_name, **self.connection_options)
 
@@ -67,5 +67,5 @@ class RedisClient:
             return await self.sentinel_client.master_for(self.service_name, **self.connection_options)
 
     @staticmethod
-    async def _check_slave_health(slave: aioredis.Redis) -> None:
+    async def _check_slave_health(slave: aioredis.Redis, /) -> None:
         await slave.ping()

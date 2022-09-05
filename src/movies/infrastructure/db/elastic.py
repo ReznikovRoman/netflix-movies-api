@@ -34,7 +34,7 @@ class ElasticClient:
     def get_client(self, *, index: str) -> AsyncElasticsearch:
         return self._get_client(index=index)
 
-    async def get_by_id(self, index: str, document_id: Id) -> dict:
+    async def get_by_id(self, document_id: Id, /, *, index: str) -> dict:
         client = self.get_client(index=index)
         try:
             doc = await client.get(index=index, id=str(document_id), request_timeout=ElasticClient.REQUEST_TIMEOUT)
@@ -52,7 +52,7 @@ class ElasticClient:
         return self.elastic_client
 
     @staticmethod
-    def _prepare_documents_list(docs: dict) -> list[dict]:
+    def _prepare_documents_list(docs: dict, /) -> list[dict]:
         results = [
             doc["_source"]
             for doc in docs["hits"]["hits"]

@@ -137,6 +137,6 @@ class Container(containers.DeclarativeContainer):
     user_service = providers.Singleton(users.UserService)
 
 
-def override_providers(container: Container) -> Container:
+def override_providers(container: Container, /) -> Container:
     """Перезаписывание провайдеров с помощью стабов."""
     return container

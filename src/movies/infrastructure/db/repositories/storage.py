@@ -46,8 +46,8 @@ class ElasticRepository(NoSQLStorageRepository):
         self.storage = storage
         self.index_name = index_name
 
-    async def get_by_id(self, doc_id: str, schema_cls: ApiSchemaClass) -> ApiSchema:
-        doc = await self.storage.get_by_id(self.index_name, doc_id)
+    async def get_by_id(self, doc_id: str, /, *, schema_cls: ApiSchemaClass) -> ApiSchema:
+        doc = await self.storage.get_by_id(doc_id, collection=self.index_name)
         return schema_cls(**doc)
 
     async def get_list(self, schema_cls: ApiSchemaClass, **search_options) -> list[ApiSchema]:
@@ -103,14 +103,14 @@ class ElasticCacheRepository(NoSQLStorageRepository):
         self.cache_repository = cache_repository
         self.key_factory = key_factory
 
-    async def get_by_id(self, doc_id: str, schema_cls: ApiSchemaClass) -> ApiSchema:
+    async def get_by_id(self, doc_id: str, /, *, schema_cls: ApiSchemaClass) -> ApiSchema:
         """Получения документа по `doc_id`."""
         key = self.key_factory(doc_id=doc_id, schema_cls=schema_cls)
         item = await self.cache_repository.get_item(key, schema_cls)
         if item is not None:
             return item
 
-        item = await self.elastic_repository.get_by_id(doc_id, schema_cls)
+        item = await self.elastic_repository.get_by_id(doc_id, schema_cls=schema_cls)
 
         await self.cache_repository.save_item(key, item)
         return item

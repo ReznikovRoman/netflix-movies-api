@@ -25,7 +25,7 @@ class CacheKeyBuilder:
         При необходимости добавляем префикс и суффикс.
         """
         hashed_key = cls.make_hash(key_to_hash, length=min_length)
-        key = cls.make_key_with_affixes(hashed_key, prefix, suffix)
+        key = cls.make_key_with_affixes(hashed_key, prefix=prefix, suffix=suffix)
         return key
 
     @staticmethod
@@ -36,7 +36,7 @@ class CacheKeyBuilder:
         return hash_str[:length]
 
     @staticmethod
-    def make_key_with_affixes(base: str, prefix: str | None = None, suffix: str | None = None) -> str:
+    def make_key_with_affixes(base: str, /, *, prefix: str | None = None, suffix: str | None = None) -> str:
         """Создание ключа с опциональными префиксом и суффиксом."""
         key = base
         if prefix is not None:
@@ -52,7 +52,7 @@ class AsyncCache(ABC):
     """Асинхронный кэш."""
 
     @abstractmethod
-    async def get(self, key: str) -> Any:
+    async def get(self, key: str, /) -> Any:
         """Получение данных из кэша по ключу `key`."""
 
     @abstractmethod
@@ -68,7 +68,7 @@ class AsyncCache(ABC):
         """
 
     @abstractmethod
-    def get_ttl(self, ttl: seconds | datetime.timedelta | None = None) -> int | None:
+    def get_ttl(self, ttl: seconds | datetime.timedelta | None = None, /) -> int | None:
         """Получение `ttl` (таймаута) для записи в кэше."""
 
 
@@ -79,13 +79,13 @@ class RedisCache(AsyncCache):
         self.client = client
         self.default_ttl = default_ttl
 
-    async def get(self, key: str, default: Any | None = None) -> Any:
-        return await self.client.get(key, default)
+    async def get(self, key: str, /, *, default: Any | None = None) -> Any:
+        return await self.client.get(key, default=default)
 
     async def set(self, key: str, data: Any, *, ttl: seconds | None = None) -> bool:
         return await self.client.set(key, data, timeout=self.get_ttl(ttl))
 
-    def get_ttl(self, ttl: seconds | datetime.timedelta | None = None) -> seconds | datetime.timedelta | None:
+    def get_ttl(self, ttl: seconds | datetime.timedelta | None = None, /) -> seconds | datetime.timedelta | None:
         if ttl is None and self.default_ttl is not None:
             return self.default_ttl
         if isinstance(ttl, datetime.timedelta):

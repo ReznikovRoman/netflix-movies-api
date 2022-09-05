@@ -21,12 +21,12 @@ class FilmRepository:
     def __init__(self, storage_repository: NoSQLStorageRepository) -> None:
         self.storage_repository = storage_repository
 
-    async def get_by_id(self, film_id: UUID) -> FilmDetail:
+    async def get_by_id(self, film_id: UUID, /) -> FilmDetail:
         """Получение фильма по ID."""
-        return await self.storage_repository.get_by_id(str(film_id), FilmDetail)
+        return await self.storage_repository.get_by_id(str(film_id), schema_cls=FilmDetail)
 
     async def get_all(
-        self,
+        self, *,
         url: str,
         page_size: int, page_number: int, sort: str | None = None,
         genre: str | None = None,
@@ -50,7 +50,10 @@ class FilmRepository:
     ) -> list[FilmList]:
         """Получение 'публичных' фильмов (доступных всем пользователям сервиса)."""
         return await self.get_all(
-            url, page_size, page_number, sort, genre, filter_fields={"access_type": FilmAccessType.PUBLIC.value})
+            url=url, page_size=page_size, page_number=page_number,
+            sort=sort, genre=genre,
+            filter_fields={"access_type": FilmAccessType.PUBLIC.value},
+        )
 
     async def search(
         self, query: str, url: str, page_size: int, page_number: int, sort: str | None = None,
