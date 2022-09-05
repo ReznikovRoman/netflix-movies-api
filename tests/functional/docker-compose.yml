@@ -17,7 +17,7 @@ services:
     command: >
       sh -c "
       cd /app/src/ &&
-      python3.10 -m uvicorn main:app --reload --host 0.0.0.0 --port 8001
+      python3.10 -m uvicorn movies.main:create_app --reload --host 0.0.0.0 --port 8001
       "
     depends_on:
       redis-sentinel:
@@ -77,6 +77,7 @@ services:
     environment:
       - xpack.security.enabled=false
       - discovery.type=single-node
+      - ES_JAVA_OPTS=-Xms750m -Xmx750m
     ports:
       - "9200:9200"
     healthcheck:

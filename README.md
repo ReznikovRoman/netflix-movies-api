@@ -99,7 +99,7 @@ NMA_ES_RETRY_ON_TIMEOUT=1
 
 # Netflix Auth API
 NMA_AUTH_SERVICE_URL=http://traefik-auth:80
-FLASK_APP=main.py
+FLASK_APP=auth.main
 # Project
 NAA_SECRET_KEY=n_0*we^k^onk9$@2c6nlh)=9hcp71e*b0(t^jn=$!qzybwk-h4
 NAA_SQLALCHEMY_ECHO=1
@@ -208,7 +208,7 @@ NMA_ES_RETRY_ON_TIMEOUT=1
 
 # Netflix Auth API
 NMA_AUTH_SERVICE_URL=http://traefik-auth:80
-FLASK_APP=main.py
+FLASK_APP=auth.main
 # Project
 NAA_SECRET_KEY=n_0*we^k^onk9$@2c6nlh)=9hcp71e*b0(t^jn=$!qzybwk-h4
 NAA_SQLALCHEMY_ECHO=1

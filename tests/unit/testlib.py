@@ -5,7 +5,6 @@ from typing import TYPE_CHECKING, Union
 import orjson
 from httpx import AsyncClient
 
-
 if TYPE_CHECKING:
     from httpx import Response
 

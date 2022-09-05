@@ -10,7 +10,6 @@ from aiohttp import ClientSession
 from .settings import get_settings
 from .testdata.elastic import ES_GENRE_MAPPING, ES_INDEX_SETTINGS, ES_MOVIES_MAPPING, ES_PERSON_MAPPING
 
-
 if TYPE_CHECKING:
     from aiohttp import ClientResponse
     from aioredis import Redis

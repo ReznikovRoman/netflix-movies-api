@@ -2,7 +2,6 @@ import pytest
 
 from ..base import BaseClientTest, CacheTestMixin, CacheWithParamsTestMixin, PaginationTestMixin
 
-
 pytestmark = [pytest.mark.asyncio]
 
 

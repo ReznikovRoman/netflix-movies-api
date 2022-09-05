@@ -3,7 +3,6 @@ import pytest
 from ..base import BaseClientTest, CacheTestMixin, NotFoundTestMixin
 from .constants import FILM_UUID
 
-
 pytestmark = [pytest.mark.asyncio]
 
 

@@ -7,7 +7,6 @@ import pytest
 
 from tests.functional.utils.helpers import find_object_by_value
 
-
 if TYPE_CHECKING:
     from tests.functional.testlib import APIClient
 

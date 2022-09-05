@@ -2,14 +2,13 @@ import random
 
 import pytest
 
-from src.schemas.films import FilmAccessType, FilmDetail, FilmList
-from src.schemas.genres import GenreDetail
-from src.schemas.persons import PersonList, PersonShortDetail
-from src.schemas.roles import PersonFullDetail, PersonRoleFilmList
+from movies.schemas.films import FilmAccessType, FilmDetail, FilmList
+from movies.schemas.genres import GenreDetail
+from movies.schemas.persons import PersonList, PersonShortDetail
+from movies.schemas.roles import PersonFullDetail, PersonRoleFilmList
 from tests.functional.api.v1.films.constants import FILM_UUID
 from tests.functional.api.v1.genres.constants import GENRE_UUID
 from tests.functional.api.v1.persons.constants import PERSON_UUID, PERSON_UUID_OTHER
-
 
 pytestmark = [pytest.mark.asyncio]
 

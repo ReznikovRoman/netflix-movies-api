@@ -8,7 +8,6 @@ import pytest
 from .settings import get_settings
 from .testlib import create_anon_client, flush_redis_cache, setup_elastic, teardown_elastic
 
-
 if TYPE_CHECKING:
     from asyncio import AbstractEventLoop
 

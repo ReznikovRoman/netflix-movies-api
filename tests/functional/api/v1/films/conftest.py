@@ -2,13 +2,12 @@ import random
 
 import pytest
 
-from schemas.films import FilmAccessType, FilmDetail
-from schemas.genres import GenreDetail
+from movies.schemas.films import FilmAccessType, FilmDetail
+from movies.schemas.genres import GenreDetail
 from tests.functional.api.v1.films.constants import (
     FILM_UUID, GENRE_UUID, SUBSCRIPTION_FILM_UUID, SUBSCRIPTION_GENRE_UUID,
 )
 from tests.functional.utils.helpers import add_film_document_to_elastic
-
 
 pytestmark = [pytest.mark.asyncio]
 

@@ -4,9 +4,11 @@ on:
   push:
     paths-ignore:
       - '**.md'
+      - 'docs/**'
   pull_request:
     paths-ignore:
       - '**.md'
+      - 'docs/**'
   workflow_dispatch:
 
 jobs:
@@ -114,7 +116,7 @@ jobs:
           export NE_ES_PORT=9200
           export NMA_ES_RETRY_ON_TIMEOUT=1
           export NMA_AUTH_SERVICE_URL=http://traefik-auth:80
-          export FLASK_APP=main.py
+          export FLASK_APP=auth.main
           export NAA_SECRET_KEY=n_0awe2kaonk9ax2c6nlhxa9hcp71e_b0atajnsaaqzybwk-h4
           export NAA_SQLALCHEMY_ECHO=1
           export NAA_PROJECT_BASE_URL=http://api-auth.localhost:8009

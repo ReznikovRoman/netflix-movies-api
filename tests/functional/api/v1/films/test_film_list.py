@@ -1,10 +1,9 @@
 import pytest
 import requests
 
-from src.common.constants import DefaultRoles
+from movies.common.constants import DefaultRoles
 
 from ..base import BaseClientTest, CacheTestMixin, CacheWithParamsTestMixin, PaginationTestMixin
-
 
 pytestmark = [pytest.mark.asyncio]
 

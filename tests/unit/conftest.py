@@ -5,10 +5,9 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from src.main import app
+from movies.main import create_app
 
 from .testlib import APIClient
-
 
 if TYPE_CHECKING:
     from asyncio import AbstractEventLoop
@@ -26,5 +25,5 @@ def event_loop() -> AbstractEventLoop:
 
 @pytest.fixture(scope="module")
 async def client() -> APIClient:
-    async with APIClient(app=app, base_url="http://test") as ac:
+    async with APIClient(app=create_app, base_url="http://test") as ac:
         yield ac
