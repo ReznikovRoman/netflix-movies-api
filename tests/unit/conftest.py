@@ -25,5 +25,5 @@ def event_loop() -> AbstractEventLoop:
 
 @pytest.fixture(scope="module")
 async def client() -> APIClient:
-    async with APIClient(app=create_app, base_url="http://test") as ac:
+    async with APIClient(app=create_app(), base_url="http://test") as ac:
         yield ac
