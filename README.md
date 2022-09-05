@@ -55,7 +55,7 @@ PYTHONUNBUFFERED=1
 DJANGO_SETTINGS_MODULE=netflix.settings
 DJANGO_CONFIGURATION=External
 DJANGO_ADMIN=django-cadmin
-DJANGO_SECRET_KEY=7+k@v^z+j%e^%5a%0zyxb-i897ct)rrb085+3l9f&0z2p8ykdd
+DJANGO_SECRET_KEY=changeme
 ALLOWED_HOSTS=localhost,127.0.0.1
 # Project
 NA_PROJECT_BASE_URL=http://localhost:8000
@@ -65,9 +65,9 @@ NA_STATIC_URL=/staticfiles/
 # Postgres
 NA_DB_HOST=db_admin
 NA_DB_PORT=5432
-NA_DB_NAME=netflix_admin
-NA_DB_USER=yandex
-NA_DB_PASSWORD=netflix
+NA_DB_NAME=netflix
+NA_DB_USER=roman
+NA_DB_PASSWORD=yandex
 # Scripts
 NA_DB_POSTGRES_BATCH_SIZE=500
 
@@ -82,26 +82,26 @@ NE_ES_PORT=9200
 
 # Netflix Movies API
 # Project
-NMA_PROJECT_BASE_URL=http://api.localhost:8008
+NMA_PROJECT_BASE_URL=http://api-movies.localhost:8008
 NMA_API_V1_STR=/api/v1
 NMA_SERVER_NAME=localhost
-NMA_SERVER_HOSTS=http://api.localhost:8008
+NMA_SERVER_HOSTS=http://api-movies.localhost:8008
 NMA_PROJECT_NAME=netflix
 NMA_DEBUG=1
 # Redis
 NMA_REDIS_SENTINELS=redis-sentinel
 NMA_REDIS_MASTER_SET=redis_cluster
-NMA_REDIS_PASSWORD=change_me
+NMA_REDIS_PASSWORD=yandex_master
 NMA_REDIS_DECODE_RESPONSES=1
 NMA_REDIS_RETRY_ON_TIMEOUT=1
 # Elasticsearch
 NMA_ES_RETRY_ON_TIMEOUT=1
 
 # Netflix Auth API
-NMA_AUTH_SERVICE_URL=http://traefik-auth:80
+NMA_AUTH_SERVICE_URL=http://traefik:81
 FLASK_APP=auth.main
 # Project
-NAA_SECRET_KEY=n_0*we^k^onk9$@2c6nlh)=9hcp71e*b0(t^jn=$!qzybwk-h4
+NAA_SECRET_KEY=changeme
 NAA_SQLALCHEMY_ECHO=1
 NAA_PROJECT_BASE_URL=http://api-auth.localhost:8009
 NAA_API_V1_STR=/api/v1
@@ -112,13 +112,27 @@ NAA_THROTTLE_KEY_PREFIX=limiter:
 NAA_THROTTLE_DEFAULT_LIMITS=50/hour
 NAA_THROTTLE_USER_REGISTRATION_LIMITS=5/minute
 NAA_DEBUG=1
+# Clients
+NAA_CLIENT_USE_STUBS=1
+# Tracing
+NAA_OTEL_ENABLE_TRACING=1
 # auth0
-NAA_AUTH0_DOMAIN=dummy.com
-NAA_AUTH0_API_AUDIENCE=https://dummy.com
-NAA_AUTH0_ISSUER=https://dummy.com/
-NAA_AUTH0_CLIENT_ID=change-me
-NAA_AUTH0_CLIENT_SECRET=change-me
-NAA_AUTH0_AUTHORIZATION_URL=https://dummy.com/oauth/token
+NAA_AUTH0_DOMAIN=changeme.auth0.com
+NAA_AUTH0_API_AUDIENCE=https://changeme.com
+NAA_AUTH0_ISSUER=https://auth0.com/
+NAA_AUTH0_CLIENT_ID=changeme
+NAA_AUTH0_CLIENT_SECRET=changeme
+NAA_AUTH0_AUTHORIZATION_URL=https://auth0.com/oauth/token
+# Social
+NAA_SOCIAL_GOOGLE_CLIENT_ID=changeme
+NAA_SOCIAL_GOOGLE_CLIENT_SECRET=changeme
+NAA_SOCIAL_GOOGLE_METADATA_URL=https://accounts.google.com/.well-known/openid-configuration
+NAA_SOCIAL_YANDEX_CLIENT_ID=changeme
+NAA_SOCIAL_YANDEX_CLIENT_SECRET=changeme
+NAA_SOCIAL_YANDEX_ACCESS_TOKEN_URL=https://oauth.yandex.ru/token
+NAA_SOCIAL_YANDEX_USERINFO_ENDPOINT=https://login.yandex.ru/info
+NAA_SOCIAL_YANDEX_AUTHORIZE_URL=https://oauth.yandex.ru/authorize
+NAA_SOCIAL_USE_STUBS=1
 # Postgres
 NAA_DB_HOST=db-auth
 NAA_DB_PORT=5432
@@ -191,26 +205,26 @@ NE_ES_PORT=9200
 
 # Netflix Movies API
 # Project
-NMA_PROJECT_BASE_URL=http://api.localhost:8008
+NMA_PROJECT_BASE_URL=http://api-movies.localhost:8008
 NMA_API_V1_STR=/api/v1
 NMA_SERVER_NAME=localhost
-NMA_SERVER_HOSTS=http://api.localhost:8008
+NMA_SERVER_HOSTS=http://api-movies.localhost:8008
 NMA_PROJECT_NAME=netflix
 NMA_DEBUG=1
 # Redis
 NMA_REDIS_SENTINELS=redis-sentinel
 NMA_REDIS_MASTER_SET=redis_cluster
-NMA_REDIS_PASSWORD=change_me
+NMA_REDIS_PASSWORD=changeme
 NMA_REDIS_DECODE_RESPONSES=1
 NMA_REDIS_RETRY_ON_TIMEOUT=1
 # Elasticsearch
 NMA_ES_RETRY_ON_TIMEOUT=1
 
 # Netflix Auth API
-NMA_AUTH_SERVICE_URL=http://traefik-auth:80
+NMA_AUTH_SERVICE_URL=http://traefik:81
 FLASK_APP=auth.main
 # Project
-NAA_SECRET_KEY=n_0*we^k^onk9$@2c6nlh)=9hcp71e*b0(t^jn=$!qzybwk-h4
+NAA_SECRET_KEY=changeme
 NAA_SQLALCHEMY_ECHO=1
 NAA_PROJECT_BASE_URL=http://api-auth.localhost:8009
 NAA_API_V1_STR=/api/v1
@@ -221,13 +235,27 @@ NAA_THROTTLE_KEY_PREFIX=limiter:
 NAA_THROTTLE_DEFAULT_LIMITS=50/hour
 NAA_THROTTLE_USER_REGISTRATION_LIMITS=5/minute
 NAA_DEBUG=1
+# Clients
+NAA_CLIENT_USE_STUBS=1
+# Tracing
+NAA_OTEL_ENABLE_TRACING=0
 # auth0
-NAA_AUTH0_DOMAIN=dummy.com
-NAA_AUTH0_API_AUDIENCE=https://dummy.com
-NAA_AUTH0_ISSUER=https://dummy.com/
-NAA_AUTH0_CLIENT_ID=change-me
-NAA_AUTH0_CLIENT_SECRET=change-me
-NAA_AUTH0_AUTHORIZATION_URL=https://dummy.com/oauth/token
+NAA_AUTH0_DOMAIN=changeme.auth0.com
+NAA_AUTH0_API_AUDIENCE=https://changeme.com
+NAA_AUTH0_ISSUER=https://auth0.com/
+NAA_AUTH0_CLIENT_ID=changeme
+NAA_AUTH0_CLIENT_SECRET=changeme
+NAA_AUTH0_AUTHORIZATION_URL=https://auth0.com/oauth/token
+# Social
+NAA_SOCIAL_GOOGLE_CLIENT_ID=changeme.apps.googleusercontent.com
+NAA_SOCIAL_GOOGLE_CLIENT_SECRET=changeme
+NAA_SOCIAL_GOOGLE_METADATA_URL=https://accounts.google.com/.well-known/openid-configuration
+NAA_SOCIAL_YANDEX_CLIENT_ID=changeme
+NAA_SOCIAL_YANDEX_CLIENT_SECRET=changeme
+NAA_SOCIAL_YANDEX_ACCESS_TOKEN_URL=https://oauth.yandex.ru/token
+NAA_SOCIAL_YANDEX_USERINFO_ENDPOINT=https://login.yandex.ru/info
+NAA_SOCIAL_YANDEX_AUTHORIZE_URL=https://oauth.yandex.ru/authorize
+NAA_SOCIAL_USE_STUBS=1
 # Postgres
 NAA_DB_HOST=db-auth
 NAA_DB_PORT=5432
