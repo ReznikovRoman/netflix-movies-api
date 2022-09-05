@@ -3,7 +3,7 @@ from __future__ import annotations
 import datetime
 from typing import TYPE_CHECKING, Any
 
-from movies.clients.redis_cache import RedisCacheClient
+from movies.infrastructure.db.redis import RedisClient
 
 from .base import AsyncCache
 
@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 class RedisCache(AsyncCache):
     """Кэш с использованием Redis."""
 
-    def __init__(self, client: RedisCacheClient, default_ttl: seconds | None = None) -> None:
+    def __init__(self, client: RedisClient, default_ttl: seconds | None = None) -> None:
         self.client = client
         self.default_ttl = default_ttl
 

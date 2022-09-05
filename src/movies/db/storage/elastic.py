@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from movies.clients.elastic import ElasticClient
+from movies.infrastructure.db.elastic import ElasticClient
 
 from .base import AsyncNoSQLStorage
 

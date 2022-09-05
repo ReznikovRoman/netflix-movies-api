@@ -1,11 +1,10 @@
 from dependency_injector import containers, providers
 
-from movies.clients.elastic import ElasticClient
-from movies.clients.redis_cache import RedisCacheClient
 from movies.core.logging import configure_logger
 from movies.db.cache.base import CacheKeyBuilder, CacheRepository
 from movies.db.cache.redis import RedisCache
 from movies.db.storage.elastic import ElasticStorage
+from movies.infrastructure.db import elastic, redis
 from movies.repositories.base import ElasticCacheRepository, ElasticRepository
 from movies.repositories.films import FilmRepository, film_key_factory
 from movies.repositories.genres import GenreRepository, genre_key_factory
@@ -30,8 +29,26 @@ class Container(containers.DeclarativeContainer):
 
     # Infrastructure
 
-    redis_cache_client = providers.Singleton(
-        RedisCacheClient,
+    elastic_connection = providers.Resource(
+        elastic.init_elastic,
+        host=config.ES_HOST,
+        port=config.ES_PORT,
+        retry_on_timeout=config.ES_RETRY_ON_TIMEOUT,
+    )
+
+    redis_sentinel_connection = providers.Resource(
+        redis.init_redis_sentinel,
+        sentinels=config.REDIS_SENTINELS,
+        socket_timeout=config.REDIS_SENTINEL_SOCKET_TIMEOUT,
+    )
+
+    elastic_client = providers.Singleton(
+        elastic.ElasticClient,
+        elastic_client=elastic_connection,
+    )
+
+    redis_client = providers.Singleton(
+        redis.RedisClient,
         service_name=config.REDIS_MASTER_SET,
         connection_options=providers.Dict(
             dict_={
@@ -40,17 +57,16 @@ class Container(containers.DeclarativeContainer):
                 "retry_on_timeout": config.REDIS_RETRY_ON_TIMEOUT,
             },
         ),
+        sentinel_client=redis_sentinel_connection,
     )
-
-    elastic_client = providers.Singleton(ElasticClient)
-
-    cache_key_builder = providers.Singleton(CacheKeyBuilder)
 
     redis_cache = providers.Singleton(
         RedisCache,
-        client=redis_cache_client,
+        client=redis_client,
         default_ttl=config.CACHE_DEFAULT_TTL,
     )
+
+    cache_key_builder = providers.Singleton(CacheKeyBuilder)
 
     elastic_storage = providers.Singleton(
         ElasticStorage,

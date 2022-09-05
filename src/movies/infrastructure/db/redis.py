@@ -1,29 +1,36 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, AsyncIterator
 
 import aioredis
 import aioredis.sentinel
-from aioredis import Redis
-
-from movies.core.config import get_settings
-from movies.db import redis_sentinel
 
 if TYPE_CHECKING:
     from movies.common.types import seconds
 
 
-settings = get_settings()
+async def init_redis_sentinel(sentinels: list[str], socket_timeout: float) -> AsyncIterator[aioredis.sentinel.Sentinel]:
+    """Инициализация клиента Redis Sentinel."""
+    sentinel_client = aioredis.sentinel.Sentinel(
+        sentinels=[(sentinel, 26379) for sentinel in sentinels],
+        socket_timeout=socket_timeout,
+    )
+    yield sentinel_client
+    for sentinel in sentinel_client.sentinels:
+        await sentinel.close()
 
 
-class RedisCacheClient:
-    """Клиент Redis для кэша."""
+class RedisClient:
+    """Асинхронный клиент для работы с Redis."""
 
-    def __init__(self, service_name: str, connection_options: dict[str, Any]) -> None:
+    def __init__(
+        self, service_name: str, connection_options: dict[str, Any], sentinel_client: aioredis.sentinel.Sentinel,
+    ) -> None:
         self.service_name = service_name
         self.connection_options = connection_options
+        self.sentinel_client = sentinel_client
 
-    async def get_client(self, key: str | None = None, *, write: bool = False) -> Redis:
+    async def get_client(self, key: str | None = None, *, write: bool = False) -> aioredis.Redis:
         await self.pre_init_client()
         client = await self._get_client(write)
         await self.post_init_client(client)
@@ -43,22 +50,22 @@ class RedisCacheClient:
     async def pre_init_client(self, *args, **kwargs):
         """Вызывается до начала инициализации клиента Redis."""
 
-    async def post_init_client(self, client: Redis, *args, **kwargs) -> None:
+    async def post_init_client(self, client: aioredis.Redis, *args, **kwargs) -> None:
         """Вызывается после инициализации клиента Redis."""
 
-    async def _get_client(self, write: bool = False) -> Redis:
+    async def _get_client(self, write: bool = False) -> aioredis.Redis:
         if write:
-            return await redis_sentinel.redis_sentinel.master_for(self.service_name, **self.connection_options)
+            return await self.sentinel_client.master_for(self.service_name, **self.connection_options)
 
         try:
-            slave: Redis = await redis_sentinel.redis_sentinel.slave_for(self.service_name, **self.connection_options)
+            slave: aioredis.Redis = await self.sentinel_client.slave_for(self.service_name, **self.connection_options)
             # XXX: в методе .slave_for() не проверяется состояние слейва (как это происходит в .discover_slaves())
             # поэтому нам приходится вручную каждый раз пинговать слейва и ловить ошибку `SlaveNotFoundError`
             await self._check_slave_health(slave)
             return slave
         except (aioredis.sentinel.SlaveNotFoundError, aioredis.exceptions.TimeoutError):
-            return await redis_sentinel.redis_sentinel.master_for(self.service_name, **self.connection_options)
+            return await self.sentinel_client.master_for(self.service_name, **self.connection_options)
 
     @staticmethod
-    async def _check_slave_health(slave: Redis) -> None:
+    async def _check_slave_health(slave: aioredis.Redis) -> None:
         await slave.ping()

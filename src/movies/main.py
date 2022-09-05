@@ -1,16 +1,11 @@
 import logging
 
-import aioredis
-import aioredis.sentinel
-from elasticsearch import AsyncElasticsearch
-
 from fastapi import FastAPI, Request
 from fastapi.responses import ORJSONResponse
 
 from movies.api.urls import api_router
 from movies.common.exceptions import NetflixMoviesError
 from movies.core.config import get_settings
-from movies.db import elastic, redis_sentinel
 
 from .containers import Container, override_providers
 
@@ -45,26 +40,11 @@ def create_app() -> FastAPI:
         await container.init_resources()
         container.check_dependencies()
         logging.info("Start server")
-        redis_sentinel.redis_sentinel = aioredis.sentinel.Sentinel(
-            sentinels=[(sentinel, 26379) for sentinel in settings.REDIS_SENTINELS],
-            socket_timeout=0.5,
-        )
-        elastic.es = AsyncElasticsearch(
-            hosts=[
-                {"host": settings.ES_HOST, "port": settings.ES_PORT},
-            ],
-            max_retries=30,
-            retry_on_timeout=settings.ES_RETRY_ON_TIMEOUT,
-            request_timeout=30,
-        )
 
     @app.on_event("shutdown")
     async def shutdown():
         await container.shutdown_resources()
         logging.info("Cleanup resources")
-        for sentinel in redis_sentinel.redis_sentinel.sentinels:
-            await sentinel.close()
-        await elastic.es.close()
 
     app.container = container
     app.include_router(api_router)

@@ -29,6 +29,7 @@ class Settings(BaseSettings):
 
     # Redis
     REDIS_SENTINELS: Union[str, list[str]]
+    REDIS_SENTINEL_SOCKET_TIMEOUT: float = 0.5
     REDIS_MASTER_SET: str
     REDIS_PASSWORD: str
     REDIS_DECODE_RESPONSES: bool = True
