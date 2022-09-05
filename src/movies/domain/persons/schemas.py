@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from .base import BaseIdOrjsonSchema
+from movies.domain.schemas import BaseIdOrjsonSchema
 
 
 class PersonShortDetail(BaseIdOrjsonSchema):

@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, ClassVar, Sequence
 from uuid import UUID
 
-from movies.schemas.films import FilmAccessType, FilmDetail, FilmList
+from .schemas import FilmAccessType, FilmDetail, FilmList
 
 if TYPE_CHECKING:
     from movies.infrastructure.db.cache import CacheKeyBuilder
@@ -43,16 +43,14 @@ class FilmRepository:
             "sort": sort,
         }
         search_query = self.storage_repository.prepare_search_request(**request_options)
-        films = await self.storage_repository.search(search_query, FilmList, **search_options)
-        return films
+        return await self.storage_repository.search(search_query, FilmList, **search_options)
 
     async def get_public(
         self, url: str, page_size: int, page_number: int, sort: str | None = None, genre: str | None = None,
     ) -> list[FilmList]:
         """Получение 'публичных' фильмов (доступных всем пользователям сервиса)."""
-        films = await self.get_all(
+        return await self.get_all(
             url, page_size, page_number, sort, genre, filter_fields={"access_type": FilmAccessType.PUBLIC.value})
-        return films
 
     async def search(
         self, query: str, url: str, page_size: int, page_number: int, sort: str | None = None,
@@ -67,8 +65,7 @@ class FilmRepository:
             "sort": sort,
         }
         search_query = self.storage_repository.prepare_search_request(**request_options)
-        films = await self.storage_repository.search(search_query, FilmList, **search_options)
-        return films
+        return await self.storage_repository.search(search_query, FilmList, **search_options)
 
     @staticmethod
     def _get_film_list_key_prefix(filter_fields: dict | None) -> str:

@@ -1,4 +1,4 @@
-from .base import BaseIdOrjsonSchema
+from movies.domain.schemas import BaseIdOrjsonSchema
 
 
 class GenreDetail(BaseIdOrjsonSchema):

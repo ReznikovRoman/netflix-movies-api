@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 from uuid import UUID
 
-from movies.schemas.genres import GenreDetail
+from .schemas import GenreDetail
 
 if TYPE_CHECKING:
     from movies.infrastructure.db.repositories import NoSQLStorageRepository
@@ -17,13 +17,11 @@ class GenreRepository:
 
     async def get_by_id(self, genre_id: UUID) -> GenreDetail:
         """Получение жанра по ID."""
-        genre = await self.storage_repository.get_by_id(str(genre_id), GenreDetail)
-        return genre
+        return await self.storage_repository.get_by_id(str(genre_id), GenreDetail)
 
     async def get_list(self) -> list[GenreDetail]:
         """Получение списка всех жанров."""
-        genres = await self.storage_repository.get_list(GenreDetail)
-        return genres
+        return await self.storage_repository.get_list(GenreDetail)
 
 
 def genre_key_factory(*args, **kwargs) -> str:

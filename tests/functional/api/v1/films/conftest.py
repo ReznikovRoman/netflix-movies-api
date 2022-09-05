@@ -2,8 +2,8 @@ import random
 
 import pytest
 
-from movies.schemas.films import FilmAccessType, FilmDetail
-from movies.schemas.genres import GenreDetail
+from movies.domain.films.schemas import FilmAccessType, FilmDetail
+from movies.domain.genres.schemas import GenreDetail
 from tests.functional.api.v1.films.constants import (
     FILM_UUID, GENRE_UUID, SUBSCRIPTION_FILM_UUID, SUBSCRIPTION_GENRE_UUID,
 )

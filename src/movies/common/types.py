@@ -1,10 +1,10 @@
 from typing import Type, Union
 from uuid import UUID
 
-from movies.schemas.films import FilmDetail, FilmList
-from movies.schemas.genres import GenreDetail
-from movies.schemas.persons import PersonList, PersonShortDetail
-from movies.schemas.roles import PersonFullDetail
+from movies.domain.films import FilmDetail, FilmList
+from movies.domain.genres import GenreDetail
+from movies.domain.persons.schemas import PersonList, PersonShortDetail
+from movies.domain.roles import PersonFullDetail
 
 ApiSchema = Union[
     GenreDetail,

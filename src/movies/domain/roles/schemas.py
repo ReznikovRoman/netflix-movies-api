@@ -1,7 +1,7 @@
 from enum import Enum
 
-from .base import BaseIdOrjsonSchema, BaseOrjsonSchema
-from .films import FilmList
+from movies.domain.films.schemas import FilmList
+from movies.domain.schemas import BaseIdOrjsonSchema, BaseOrjsonSchema
 
 
 class Role(str, Enum):

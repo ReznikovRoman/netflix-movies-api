@@ -2,10 +2,10 @@ import random
 
 import pytest
 
-from movies.schemas.films import FilmAccessType, FilmDetail, FilmList
-from movies.schemas.genres import GenreDetail
-from movies.schemas.persons import PersonList, PersonShortDetail
-from movies.schemas.roles import PersonFullDetail, PersonRoleFilmList
+from movies.domain.films.schemas import FilmAccessType, FilmDetail, FilmList
+from movies.domain.genres.schemas import GenreDetail
+from movies.domain.persons.schemas import PersonList, PersonShortDetail
+from movies.domain.roles.schemas import PersonFullDetail, PersonRoleFilmList
 from tests.functional.api.v1.films.constants import FILM_UUID
 from tests.functional.api.v1.genres.constants import GENRE_UUID
 from tests.functional.api.v1.persons.constants import PERSON_UUID, PERSON_UUID_OTHER

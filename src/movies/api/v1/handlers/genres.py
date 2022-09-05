@@ -5,8 +5,7 @@ from dependency_injector.wiring import Provide, inject
 from fastapi import APIRouter, Depends
 
 from movies.containers import Container
-from movies.repositories.genres import GenreRepository
-from movies.schemas.genres import GenreDetail
+from movies.domain.genres import GenreDetail, GenreRepository
 
 router = APIRouter(tags=["Genres"])
 

@@ -6,9 +6,8 @@ from fastapi import APIRouter, Depends, Query, Request
 
 from movies.api.deps import PageNumberPaginationQueryParams, SortQueryParams, get_user_roles
 from movies.containers import Container
-from movies.repositories.films import FilmRepository
-from movies.schemas.films import FilmDetail, FilmList
-from movies.services.users import UserService
+from movies.domain.films import FilmDetail, FilmList, FilmRepository
+from movies.domain.users import UserService
 
 router = APIRouter(tags=["Films"])
 

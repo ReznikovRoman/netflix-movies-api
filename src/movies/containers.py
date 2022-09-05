@@ -1,11 +1,8 @@
 from dependency_injector import containers, providers
 
 from movies.core.logging import configure_logger
+from movies.domain import films, genres, persons, users
 from movies.infrastructure.db import cache, elastic, redis, repositories, storage
-from movies.repositories.films import FilmRepository, film_key_factory
-from movies.repositories.genres import GenreRepository, genre_key_factory
-from movies.repositories.persons import PersonRepository, person_key_factory
-from movies.services.users import UserService
 
 
 class Container(containers.DeclarativeContainer):
@@ -77,7 +74,7 @@ class Container(containers.DeclarativeContainer):
     # Domain -> Genres
 
     genre_repository = providers.Singleton(
-        GenreRepository,
+        genres.GenreRepository,
         storage_repository=providers.Singleton(
             repositories.ElasticCacheRepository,
             elastic_repository=providers.Singleton(
@@ -86,20 +83,20 @@ class Container(containers.DeclarativeContainer):
                 index_name="genre",
             ),
             cache_repository=cache_repository,
-            key_factory=providers.Callable(genre_key_factory).provider,
+            key_factory=providers.Callable(genres.genre_key_factory).provider,
         ),
     )
 
     # Domain -> Films
 
     film_key_factory_ = providers.Callable(
-        film_key_factory,
+        films.film_key_factory,
         key_builder=cache_key_builder,
         min_length=config.CACHE_HASHED_KEY_LENGTH,
     )
 
     film_repository = providers.Singleton(
-        FilmRepository,
+        films.FilmRepository,
         storage_repository=providers.Singleton(
             repositories.ElasticCacheRepository,
             elastic_repository=providers.Singleton(
@@ -115,13 +112,13 @@ class Container(containers.DeclarativeContainer):
     # Domain -> Persons
 
     person_key_factory_ = providers.Callable(
-        person_key_factory,
+        persons.person_key_factory,
         key_builder=cache_key_builder,
         min_length=config.CACHE_HASHED_KEY_LENGTH,
     )
 
     person_repository = providers.Singleton(
-        PersonRepository,
+        persons.PersonRepository,
         storage_repository=providers.Singleton(
             repositories.ElasticCacheRepository,
             elastic_repository=providers.Singleton(
@@ -137,7 +134,7 @@ class Container(containers.DeclarativeContainer):
 
     # Domain -> Users
 
-    user_service = providers.Singleton(UserService)
+    user_service = providers.Singleton(users.UserService)
 
 
 def override_providers(container: Container) -> Container:

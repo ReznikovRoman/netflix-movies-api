@@ -6,10 +6,10 @@ from fastapi import APIRouter, Depends, Query, Request
 
 from movies.api.deps import PageNumberPaginationQueryParams
 from movies.containers import Container
-from movies.repositories.persons import PersonRepository
-from movies.schemas.films import FilmList
-from movies.schemas.persons import PersonList, PersonShortDetail
-from movies.schemas.roles import PersonFullDetail
+from movies.domain.films import FilmList
+from movies.domain.persons.repositories import PersonRepository
+from movies.domain.persons.schemas import PersonList, PersonShortDetail
+from movies.domain.roles import PersonFullDetail
 
 router = APIRouter(tags=["Persons"])
 

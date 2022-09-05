@@ -2,7 +2,7 @@ import random
 
 import pytest
 
-from movies.schemas.genres import GenreDetail
+from movies.domain.genres.schemas import GenreDetail
 from tests.functional.api.v1.genres.constants import GENRE_UUID
 
 pytestmark = [pytest.mark.asyncio]

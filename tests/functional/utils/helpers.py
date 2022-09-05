@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, Sequence
 
-from movies.schemas.films import FilmDetail
+from movies.domain.films.schemas import FilmDetail
 
 if TYPE_CHECKING:
     from elasticsearch import AsyncElasticsearch

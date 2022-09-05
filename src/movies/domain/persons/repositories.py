@@ -3,14 +3,12 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, ClassVar, Sequence
 from uuid import UUID
 
-from movies.schemas.films import FilmList
-from movies.schemas.persons import PersonList, PersonShortDetail
-from movies.schemas.roles import PersonFullDetail
-
-from .films import FilmRepository
+from .schemas import PersonList, PersonShortDetail
 
 if TYPE_CHECKING:
     from movies.common.types import ApiSchemaClass
+    from movies.domain.films import FilmList, FilmRepository
+    from movies.domain.roles.schemas import PersonFullDetail
     from movies.infrastructure.db.cache import CacheKeyBuilder
     from movies.infrastructure.db.repositories import NoSQLStorageRepository
 
@@ -26,13 +24,13 @@ class PersonRepository:
 
     async def get_by_id(self, person_id: UUID) -> PersonShortDetail:
         """Получение персоны по ID."""
-        person = await self.storage_repository.get_by_id(str(person_id), PersonShortDetail)
-        return person
+        return await self.storage_repository.get_by_id(str(person_id), PersonShortDetail)
 
     async def get_by_id_detailed(self, person_id: UUID) -> PersonFullDetail:
         """Получение полной информации о персоне по ID."""
-        person = await self.storage_repository.get_by_id(str(person_id), PersonFullDetail)
-        return person
+        from movies.domain.roles.schemas import PersonFullDetail
+
+        return await self.storage_repository.get_by_id(str(person_id), PersonFullDetail)
 
     async def get_all(self, url: str, page_size: int, page_number: int) -> list[PersonList]:
         """Получение списка всех персон."""
@@ -40,8 +38,7 @@ class PersonRepository:
             "cache_options": {"base_key": url, "prefix": "persons:list"},
         }
         request_body = self.storage_repository.prepare_search_request(page_size=page_size, page_number=page_number)
-        persons = await self.storage_repository.search(request_body, PersonList, **search_options)
-        return persons
+        return await self.storage_repository.search(request_body, PersonList, **search_options)
 
     async def search(self, query: str, url: str, page_size: int, page_number: int) -> list[PersonShortDetail]:
         """Поиск по персонам."""
@@ -53,18 +50,19 @@ class PersonRepository:
             "cache_options": {"base_key": url, "prefix": "persons:search"},
         }
         search_query = self.storage_repository.prepare_search_request(**request_options)
-        persons = await self.storage_repository.search(search_query, PersonShortDetail, **search_options)
-        return persons
+        return await self.storage_repository.search(search_query, PersonShortDetail, **search_options)
 
     async def get_person_films(self, person_id: UUID) -> list[FilmList]:
         """Получение фильмов с участием персоны `person_id`."""
+        from movies.domain.films.schemas import FilmList
+
         person_id = str(person_id)
         search_options = {
             "cache_options": {"base_key": person_id, "prefix": "persons", "suffix": "films"},
         }
         search_query = self.prepare_films_search_request(person_id)
-        person_films = await self.film_repository.storage_repository.search(search_query, FilmList, **search_options)
-        return person_films
+        return await self.film_repository.storage_repository.search(
+            search_query, FilmList, **search_options)
 
     @staticmethod
     def prepare_films_search_request(person_id: str) -> dict:
