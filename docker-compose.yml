@@ -1,4 +1,4 @@
-version: '3.8'
+version: '3.9'
 
 services:
   server:
@@ -171,10 +171,14 @@ services:
     env_file:
       - $ENV
     depends_on:
-      - db_admin
-      - redis_etl
-      - elasticsearch_etl
-      - kibana_etl
+      elasticsearch_etl:
+        condition: service_healthy
+      redis_etl:
+        condition: service_started
+      db_admin:
+        condition: service_started
+      kibana_etl:
+        condition: service_started
 
   server-auth:
     platform: linux/amd64
