@@ -79,6 +79,7 @@ NE_REDIS_DECODE_RESPONSES=1
 # Elasticsearch
 NE_ES_HOST=elasticsearch_etl
 NE_ES_PORT=9200
+NE_ES_RETRY_ON_TIMEOUT=1
 
 # Netflix Movies API
 # Project
@@ -202,6 +203,7 @@ PYTHONUNBUFFERED=1
 # Elasticsearch
 NE_ES_HOST=elasticsearch
 NE_ES_PORT=9200
+NE_ES_RETRY_ON_TIMEOUT=1
 
 # Netflix Movies API
 # Project
