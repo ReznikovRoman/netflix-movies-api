@@ -1,4 +1,4 @@
-# Netflix API
+# Netflix Movies API
 АПИ для онлайн-кинотеатра _Netflix_.
 
 ## Сервисы
