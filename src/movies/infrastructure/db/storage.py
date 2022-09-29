@@ -3,6 +3,8 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Any
 
+from elasticsearch.exceptions import RequestError
+
 if TYPE_CHECKING:
     from movies.common.types import Id, Query
 
@@ -35,7 +37,10 @@ class ElasticStorage(AsyncNoSQLStorage):
         return await self.client.get_by_id(document_id, index=collection)
 
     async def search(self, collection: str, query: Query, *args, **kwargs) -> list[dict]:
-        return await self.client.search(collection, query, **kwargs)
+        try:
+            return await self.client.search(collection, query, **kwargs)
+        except RequestError:
+            return []
 
     async def get_all(self, collection: str, **options) -> list[dict]:
         query = {"query": {"match_all": {}}}
