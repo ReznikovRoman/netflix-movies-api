@@ -28,8 +28,12 @@ services:
         condition: service_started
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.movies_api.rule=Host(`api-movies.localhost`,`traefik`)"
+      - "traefik.docker.network=movies_api"
+      - "traefik.http.routers.movies_api.rule=Host(`api-movies.localhost`,`traefik`) || HostRegexp(`eu.ngrok.io`,`{subhost:[a-zA-Z0-9-]+}.eu.ngrok.io`)"
       - "traefik.http.routers.movies_api.entrypoints=movies_api"
+    networks:
+      - movies_api
+      - voice_assistant_api
 
   redis-sentinel:
     image: bitnami/redis-sentinel:6.2.7
@@ -46,6 +50,9 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    networks:
+      - movies_api
+      - voice_assistant_api
 
   redis:
     image: bitnami/redis:6.2.7
@@ -56,6 +63,9 @@ services:
       - "6379"
     volumes:
       - redis_master_data:/data
+    networks:
+      - movies_api
+      - voice_assistant_api
 
   redis-slave:
     image: bitnami/redis:6.2.7
@@ -70,6 +80,9 @@ services:
       - redis
     volumes:
       - redis_slave_data:/data
+    networks:
+      - movies_api
+      - voice_assistant_api
 
   redis-slave-2:
     image: bitnami/redis:6.2.7
@@ -84,6 +97,9 @@ services:
       - redis
     volumes:
       - redis_slave_data:/data
+    networks:
+      - movies_api
+      - voice_assistant_api
 
   traefik:
     image: traefik:v2.7
@@ -105,6 +121,8 @@ services:
     depends_on:
       - server
       - server-auth
+    networks:
+      - movies_api
 
   db_admin:
     image: yandexmiddleteamv1/netflix-admin-db:latest
@@ -116,6 +134,9 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data_admin:/var/lib/postgresql/data/
+    networks:
+      - movies_api
+      - voice_assistant_api
 
   server_admin:
     platform: linux/amd64
@@ -127,6 +148,9 @@ services:
       - "8000:8000"
     depends_on:
       - db_admin
+    networks:
+      - movies_api
+      - voice_assistant_api
 
   redis_etl:
     image: "redis:alpine"
@@ -134,6 +158,9 @@ services:
       - 6379
     volumes:
       - redis_data_etl:/data
+    networks:
+      - movies_api
+      - voice_assistant_api
 
   elasticsearch_etl:
     image: elasticsearch:7.17.2
@@ -152,6 +179,9 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    networks:
+      - movies_api
+      - voice_assistant_api
 
   kibana_etl:
     image: kibana:7.17.2
@@ -163,6 +193,9 @@ services:
       - ELASTICSEARCH_HOSTS=http://elasticsearch_etl:9200
     depends_on:
       - elasticsearch_etl
+    networks:
+      - movies_api
+      - voice_assistant_api
 
   etl:
     platform: linux/amd64
@@ -179,6 +212,9 @@ services:
         condition: service_started
       kibana_etl:
         condition: service_started
+    networks:
+      - movies_api
+      - voice_assistant_api
 
   server-auth:
     platform: linux/amd64
@@ -197,6 +233,9 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.auth_api.rule=Host(`api-auth.localhost`,`traefik`)"
       - "traefik.http.routers.auth_api.entrypoints=auth_api"
+    networks:
+      - movies_api
+      - voice_assistant_api
 
   redis-auth:
     image: redis:7.0-alpine
@@ -209,6 +248,9 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    networks:
+      - movies_api
+      - voice_assistant_api
 
   db-auth:
     image: postgres:14.2-alpine
@@ -225,6 +267,9 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    networks:
+      - movies_api
+      - voice_assistant_api
 
   jaeger:
     image: jaegertracing/all-in-one:latest
@@ -239,6 +284,9 @@ services:
       - "9411:9411"
     depends_on:
       - server-auth
+    networks:
+      - movies_api
+      - voice_assistant_api
 
 volumes:
   redis_master_data:
@@ -249,3 +297,10 @@ volumes:
   kibana_data_etl:
   redis_data_auth:
   postgres_data_auth:
+
+networks:
+  movies_api:
+    name: movies_api
+    driver: bridge
+  voice_assistant_api:
+    external: true
