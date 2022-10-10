@@ -2,10 +2,10 @@ from movies.common.constants import DefaultRoles
 
 
 class UserService:
-    """Сервис для работы с пользователями."""
+    """User service."""
 
     @staticmethod
     def is_subscriber(roles: list[str]) -> bool:
-        """Проверка ролей пользователя на 'Подписчика'."""
+        """Verify if user has a 'subscriber' role."""
         has_subscription = DefaultRoles.SUBSCRIBERS.value in roles
         return has_subscription

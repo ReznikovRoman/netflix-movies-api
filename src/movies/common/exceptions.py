@@ -2,7 +2,7 @@ from http import HTTPStatus
 
 
 class APIErrorMixin:
-    """Миксин для ошибки REST API."""
+    """REST API error mixin."""
 
     message: str
     code: str
@@ -28,15 +28,15 @@ class APIErrorMixin:
 
 
 class BaseNetflixMoviesError(Exception):
-    """Базовая ошибка сервиса."""
+    """Base service error."""
 
 
 class NetflixMoviesError(APIErrorMixin, BaseNetflixMoviesError):
-    """Ошибка сервиса Netflix API."""
+    """Netflix Movies service error."""
 
 
 class NotFoundError(NetflixMoviesError):
-    """Ресурс не найден."""
+    """Resource is not found."""
 
     message = "Resource not found"
     code = "not_found"
@@ -44,7 +44,7 @@ class NotFoundError(NetflixMoviesError):
 
 
 class ImproperlyConfiguredError(NetflixMoviesError):
-    """Неверная конфигурация."""
+    """Improperly configured service."""
 
     message = "Improperly configured service"
     code = "improperly_configured"
@@ -52,7 +52,7 @@ class ImproperlyConfiguredError(NetflixMoviesError):
 
 
 class AuthorizationError(NetflixMoviesError):
-    """Ошибка при авторизации."""
+    """Authorization error."""
 
     message = "Authorization error"
     code = "authorization_error"

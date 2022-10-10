@@ -16,7 +16,7 @@ settings = get_settings()
     max_time=2 * 60,
 )
 async def wait_for_redis() -> None:
-    """Ожидает полноценного подключения к Redis."""
+    """Wait for Redis complete setup."""
     sentinel = aioredis.sentinel.Sentinel(
         sentinels=[(sentinel, 26379) for sentinel in settings.REDIS_SENTINELS],
         socket_timeout=0.5,

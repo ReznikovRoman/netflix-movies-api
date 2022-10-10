@@ -3,7 +3,7 @@ from .constants import PERSON_UUID_OTHER
 
 
 class TestPersonFilmList(CacheTestMixin, BaseClientTest):
-    """Тестирование получения списка фильмов по UUID персоны."""
+    """Tests for retrieving list of person films by UUID."""
 
     endpoint = "/api/v1/persons/{uuid}/films"
 
@@ -14,7 +14,7 @@ class TestPersonFilmList(CacheTestMixin, BaseClientTest):
     cache_dto_fixture_name = "film_dto"
 
     async def test_person_film_list_ok(self, client, films_es, film_dto, person_es, person_uuid_other):
-        """Получение списка фильмов по UUID персоны работает корректно."""
+        """Retrieving list of films by person's UUID works correctly."""
         got = await self.client.get(f"/api/v1/persons/{person_uuid_other}/films")
 
         assert len(got) == 1

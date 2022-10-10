@@ -15,24 +15,24 @@ jwt_scheme = HTTPBearer(auto_error=False)
 
 
 class PageNumberPaginationQueryParams:
-    """Стандартные query параметры для запроса с пагинацией."""
+    """Pagination query parameters."""
 
     def __init__(
         self,
-        page_number: int | None = Query(default=0, alias="page[number]", description="Номер страницы."),
-        page_size: int | None = Query(default=DEFAULT_PAGE_SIZE, alias="page[size]", description="Размер страницы."),
+        page_number: int | None = Query(default=0, alias="page[number]", description="Page number."),
+        page_size: int | None = Query(default=DEFAULT_PAGE_SIZE, alias="page[size]", description="Page size."),
     ) -> None:
         self.page_number = page_number
         self.page_size = page_size
 
 
 class SortQueryParams:
-    """Стандартные query параметры для запроса с сортировкой."""
+    """Sort query parameters."""
 
     API_DESCENDING_CHAR: ClassVar[str] = "-"
     ELASTIC_DESCENDING_CHAR: ClassVar[str] = ":desc"
 
-    def __init__(self, sort: list[str] | None = Query(default=None, description="Сортировка по полю.")) -> None:
+    def __init__(self, sort: list[str] | None = Query(default=None, description="Sorting field.")) -> None:
         self.sort = None
 
         if sort is not None:
@@ -53,7 +53,7 @@ class SortQueryParams:
 
 
 def get_user_roles(token: HTTPAuthorizationCredentials | None = Depends(jwt_scheme)) -> list[str]:
-    """Получение списка ролей пользователя из JWT токена."""
+    """Get user roles from JWT claim."""
     if token is None:
         return []
     try:

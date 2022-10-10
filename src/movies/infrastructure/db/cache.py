@@ -13,16 +13,16 @@ if TYPE_CHECKING:
 
 
 class CacheKeyBuilder:
-    """Генератор ключей для кэша."""
+    """Cache key builder."""
 
     @classmethod
     def make_key(
         cls, key_to_hash: str, *, min_length: int, prefix: str | None = None, suffix: str | None = None,
     ) -> str:
-        """Получение ключа для кэша.
+        """Create a cache key.
 
-        Хэшируем исходной ключ `key_to_hash` - используем первые `min_length` символов из полученного хеша.
-        При необходимости добавляем префикс и суффикс.
+        Hash the given `key_to_hash` - use first `min_length` symbols from the resulting hash.
+        Add prefix and suffix if necessary.
         """
         hashed_key = cls.make_hash(key_to_hash, length=min_length)
         key = cls.make_key_with_affixes(hashed_key, prefix=prefix, suffix=suffix)
@@ -30,14 +30,14 @@ class CacheKeyBuilder:
 
     @staticmethod
     def make_hash(string: str, /, *, length: int) -> str:
-        """Хеширование строки с заданной длиной."""
+        """Create `string` hash of the given length."""
         hashed_string = hashlib.sha256(string.encode())
         hash_str = base64.urlsafe_b64encode(hashed_string.digest()).decode("ascii")
         return hash_str[:length]
 
     @staticmethod
     def make_key_with_affixes(base: str, /, *, prefix: str | None = None, suffix: str | None = None) -> str:
-        """Создание ключа с опциональными префиксом и суффиксом."""
+        """Create a cache key with optional prefix and suffix."""
         key = base
         if prefix is not None:
             prefix = prefix.removesuffix(":")
@@ -49,31 +49,31 @@ class CacheKeyBuilder:
 
 
 class AsyncCache(ABC):
-    """Асинхронный кэш."""
+    """Async cache."""
 
     @abstractmethod
     async def get(self, key: str, /) -> Any:
-        """Получение данных из кэша по ключу `key`."""
+        """Get data from cache by the given key."""
 
     @abstractmethod
     async def set(self, key: str, data: Any, *, ttl: seconds | datetime.timedelta | None = None) -> bool:
-        """Сохранение данных с заданным ttl и ключом.
+        """Save data in cache with the given key and ttl.
 
         Args:
-            key: ключ, по которому надо сохранять данные.
-            data: данные для сохранения.
-            ttl: значение ttl, время жизни объекта в кэше.
+            key: cache key.
+            data: data for caching.
+            ttl: ttl cache value.
 
-        Returns: Были ли данные сохранены успешно.
+        Returns: Has the data been saved successfully.
         """
 
     @abstractmethod
     def get_ttl(self, ttl: seconds | datetime.timedelta | None = None, /) -> int | None:
-        """Получение `ttl` (таймаута) для записи в кэше."""
+        """Get ttl (timeout) for cache."""
 
 
 class RedisCache(AsyncCache):
-    """Кэш с использованием Redis."""
+    """Redis cache."""
 
     def __init__(self, client: RedisClient, default_ttl: seconds | datetime.timedelta | None = None) -> None:
         self.client = client

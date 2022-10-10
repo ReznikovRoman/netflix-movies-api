@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 
 
 class FilmRepository:
-    """Репозиторий для работы с данными фильмов."""
+    """Film repository."""
 
     es_film_index_search_fields: ClassVar[Sequence[str]] = [
         "title", "description", "genres_names", "actors_names", "directors_names", "writers_names",
@@ -22,7 +22,7 @@ class FilmRepository:
         self.storage_repository = storage_repository
 
     async def get_by_id(self, film_id: UUID, /) -> FilmDetail:
-        """Получение фильма по ID."""
+        """Get film by id."""
         return await self.storage_repository.get_by_id(str(film_id), schema_cls=FilmDetail)
 
     async def get_all(
@@ -32,7 +32,7 @@ class FilmRepository:
         genre: str | None = None,
         filter_fields: dict[str, str] | None = None,
     ) -> list[FilmList]:
-        """Получение списка всех фильмов с пагинацией."""
+        """Get paginated films."""
         cache_key_prefix = self._get_film_list_key_prefix(filter_fields)
         request_options = {
             "search_query": genre, "page_size": page_size, "page_number": page_number,
@@ -48,7 +48,7 @@ class FilmRepository:
     async def get_public(
         self, url: str, page_size: int, page_number: int, sort: str | None = None, genre: str | None = None,
     ) -> list[FilmList]:
-        """Получение 'публичных' фильмов (доступных всем пользователям сервиса)."""
+        """Get 'public' films (ones that are accessible for all users)."""
         return await self.get_all(
             url=url, page_size=page_size, page_number=page_number,
             sort=sort, genre=genre,
@@ -58,7 +58,7 @@ class FilmRepository:
     async def search(
         self, query: str, url: str, page_size: int, page_number: int, sort: str | None = None,
     ) -> list[FilmList]:
-        """Поиск по фильмам."""
+        """Films search."""
         request_options = {
             "search_query": query, "page_size": page_size, "page_number": page_number,
             "search_fields": self.es_film_index_search_fields,
@@ -72,7 +72,7 @@ class FilmRepository:
 
     @staticmethod
     def _get_film_list_key_prefix(filter_fields: dict | None) -> str:
-        """Получение префикса для ключа в кэше."""
+        """Get cache key prefix."""
         prefix = "films:list:all"
         if not filter_fields:
             return prefix
@@ -83,7 +83,7 @@ class FilmRepository:
 
 
 def film_key_factory(key_builder: CacheKeyBuilder, min_length: int, *args, **kwargs) -> str:
-    """Фабрика по созданию ключей фильмов в кэше."""
+    """Cache key factory."""
     film_id: str | None = kwargs.pop("doc_id", None)
     if film_id is not None:
         return f"films:{film_id}"

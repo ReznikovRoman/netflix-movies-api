@@ -5,7 +5,7 @@ from movies.domain.schemas import BaseIdOrjsonSchema, BaseOrjsonSchema
 
 
 class Role(str, Enum):
-    """Роль персоны."""
+    """Person role."""
 
     ACTOR = "actor"
     WRITER = "writer"
@@ -13,14 +13,14 @@ class Role(str, Enum):
 
 
 class PersonRoleFilmList(BaseOrjsonSchema):
-    """Роль персоны со списком фильмов."""
+    """Person role with associated films."""
 
     role: Role
     films: list[FilmList]
 
 
 class PersonFullDetail(BaseIdOrjsonSchema):
-    """Персона (с разбиением фильмов по ролям)."""
+    """Person full detail (with films by roles)."""
 
     full_name: str
     roles: list[PersonRoleFilmList]

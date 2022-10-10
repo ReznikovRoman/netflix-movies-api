@@ -14,7 +14,7 @@ class EnvConfig(BaseSettings.Config):
 
 
 class Test(BaseSettings):
-    """Настройки для функциональных тестов."""
+    """Functional tests settings."""
 
     # Tests
     CLIENT_BASE_URL: str = Field(env="TEST_CLIENT_BASE_URL")

@@ -1,12 +1,12 @@
 from enum import Enum
 from typing import Final
 
-# Размер страницы по умолчанию
+# Default page size for pagination
 DEFAULT_PAGE_SIZE: Final[int] = 50
 
 
 class DefaultRoles(str, Enum):
-    """Роли в сервисе по умолчанию."""
+    """Default roles."""
 
     VIEWERS = "viewers"
     SUBSCRIBERS = "subscribers"

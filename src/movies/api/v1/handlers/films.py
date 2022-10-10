@@ -12,24 +12,24 @@ from movies.domain.users import UserService
 router = APIRouter(tags=["Films"])
 
 
-@router.get("/", response_model=list[FilmList], summary="Фильмы")
+@router.get("/", response_model=list[FilmList], summary="Films")
 @inject
 async def get_films(
     request: Request,
     sort_params: SortQueryParams = Depends(SortQueryParams),
     pagination_params: PageNumberPaginationQueryParams = Depends(PageNumberPaginationQueryParams),
-    genre: str | None = Query(default=None, alias="filter[genre]", description="Сортировка по жанрам."),
+    genre: str | None = Query(default=None, alias="filter[genre]", description="Genre filter."),
     user_roles: list[str] = Depends(get_user_roles),
     film_repository: FilmRepository = Depends(Provide[Container.film_repository]),
     user_service: UserService = Depends(Provide[Container.user_service]),
 ):
-    """Получение списка фильмов.
+    """Get list of films.
 
-    Если у пользователя есть подписка - показываем все фильмы, если нет - то только публичные/открытые.
+    Return all films if user has a subscription, only public ones otherwise.
 
-    Сортировка `sort`: https://www.elastic.co/guide/en/elasticsearch/reference/current/sort-search-results.html.
+    Sorting `sort`: https://www.elastic.co/guide/en/elasticsearch/reference/current/sort-search-results.html.
 
-    Пример: `GET /api/v1/films?sort=-imdb_rating`.
+    Example: `GET /api/v1/films?sort=-imdb_rating`.
     """
     is_subscriber = user_service.is_subscriber(user_roles)
     params = {
@@ -43,20 +43,20 @@ async def get_films(
     return await film_repository.get_public(**params)
 
 
-@router.get("/search", response_model=list[FilmList], summary="Поиск по фильмам")
+@router.get("/search", response_model=list[FilmList], summary="Films search")
 @inject
 async def search_films(
     request: Request,
     sort_params: SortQueryParams = Depends(SortQueryParams),
     pagination_params: PageNumberPaginationQueryParams = Depends(PageNumberPaginationQueryParams),
-    query: str = Query(..., description="Поиск по Фильмам.", required=True),
+    query: str = Query(..., description="Search query.", required=True),
     film_repository: FilmRepository = Depends(Provide[Container.film_repository]),
 ):
-    """Поиск по фильмам.
+    """Films search.
 
-    Сортировка `sort`: https://www.elastic.co/guide/en/elasticsearch/reference/current/sort-search-results.html.
+    Sorting `sort`: https://www.elastic.co/guide/en/elasticsearch/reference/current/sort-search-results.html.
 
-    Пример: `GET /api/v1/films/search?sort=-imdb_rating`.
+    Example: `GET /api/v1/films/search?sort=-imdb_rating`.
     """
     return await film_repository.search(
         query=query, url=request.url.query,
@@ -64,11 +64,11 @@ async def search_films(
     )
 
 
-@router.get("/{uuid}", response_model=FilmDetail, summary="Фильм")
+@router.get("/{uuid}", response_model=FilmDetail, summary="Film")
 @inject
 async def get_film(
     uuid: UUID,
     film_repository: FilmRepository = Depends(Provide[Container.film_repository]),
 ):
-    """Получение фильма по `uuid`."""
+    """Get film detail by id."""
     return await film_repository.get_by_id(uuid)

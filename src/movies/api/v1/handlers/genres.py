@@ -10,18 +10,18 @@ from movies.domain.genres import GenreDetail, GenreRepository
 router = APIRouter(tags=["Genres"])
 
 
-@router.get("/{uuid}", response_model=GenreDetail, summary="Жанр")
+@router.get("/{uuid}", response_model=GenreDetail, summary="Genre")
 @inject
 async def get_genre(
     uuid: UUID,
     genre_repository: GenreRepository = Depends(Provide[Container.genre_repository]),
 ):
-    """Получение жанра по `uuid`."""
+    """Get genre detail by id."""
     return await genre_repository.get_by_id(uuid)
 
 
-@router.get("/", response_model=list[GenreDetail], summary="Жанры")
+@router.get("/", response_model=list[GenreDetail], summary="Genres")
 @inject
 async def get_genres(genre_repository: GenreRepository = Depends(Provide[Container.genre_repository])):
-    """Получения списка жанров."""
+    """Get list of genres."""
     return await genre_repository.get_list()

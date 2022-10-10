@@ -2,7 +2,7 @@ from ..base import BaseClientTest, CacheTestMixin
 
 
 class TestPersonList(CacheTestMixin, BaseClientTest):
-    """Тестирование получения списка персон."""
+    """Tests for retrieving a list of persons."""
 
     endpoint = "/api/v1/persons/"
 
@@ -12,7 +12,7 @@ class TestPersonList(CacheTestMixin, BaseClientTest):
     cache_dto_fixture_name = "person_dto"
 
     async def test_person_list_ok(self, persons_es, persons_dto):
-        """Получение списка персон работает корректно."""
+        """Retrieving list of persons works correctly."""
         fields_to_check = ("uuid", "full_name")
 
         got = await self.client.get("/api/v1/persons")

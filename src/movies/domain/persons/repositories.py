@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 
 
 class PersonRepository:
-    """Репозиторий для работы с данными персон."""
+    """Person repository."""
 
     es_person_index_search_fields: ClassVar[Sequence[str]] = ["full_name"]
 
@@ -23,17 +23,17 @@ class PersonRepository:
         self.film_repository = film_repository
 
     async def get_by_id(self, person_id: UUID, /) -> PersonShortDetail:
-        """Получение персоны по ID."""
+        """Get person by id."""
         return await self.storage_repository.get_by_id(str(person_id), schema_cls=PersonShortDetail)
 
     async def get_by_id_detailed(self, person_id: UUID, /) -> PersonFullDetail:
-        """Получение полной информации о персоне по ID."""
+        """Get person full details by id."""
         from movies.domain.roles.schemas import PersonFullDetail
 
         return await self.storage_repository.get_by_id(str(person_id), schema_cls=PersonFullDetail)
 
     async def get_all(self, *, url: str, page_size: int, page_number: int) -> list[PersonList]:
-        """Получение списка всех персон."""
+        """Get person list."""
         search_options = {
             "cache_options": {"base_key": url, "prefix": "persons:list"},
         }
@@ -41,7 +41,7 @@ class PersonRepository:
         return await self.storage_repository.search(request_body, PersonList, **search_options)
 
     async def search(self, query: str, url: str, page_size: int, page_number: int) -> list[PersonShortDetail]:
-        """Поиск по персонам."""
+        """Persons search."""
         request_options = {
             "search_query": query, "page_size": page_size, "page_number": page_number,
             "search_fields": self.es_person_index_search_fields,
@@ -53,7 +53,7 @@ class PersonRepository:
         return await self.storage_repository.search(search_query, PersonShortDetail, **search_options)
 
     async def get_person_films(self, person_id: UUID, /) -> list[FilmList]:
-        """Получение фильмов с участием персоны `person_id`."""
+        """Get person films by id."""
         from movies.domain.films.schemas import FilmList
 
         person_id = str(person_id)
@@ -66,7 +66,7 @@ class PersonRepository:
 
     @staticmethod
     def prepare_films_search_request(person_id: str, /) -> dict:
-        """Запрос в Elasticsearch на получение фильмов персоны."""
+        """Elasticsearch query for retrieving person films."""
         query = {
             "fields": [
                 "uuid",
@@ -103,7 +103,7 @@ class PersonRepository:
 
 
 def person_key_factory(key_builder: CacheKeyBuilder, min_length: int, *args, **kwargs) -> str:
-    """Фабрика по созданию ключей персон в кэше."""
+    """Cache key factory."""
     person_id: str | None = kwargs.pop("doc_id", None)
     schema_cls: ApiSchemaClass | None = kwargs.pop("schema_cls", None)
     if person_id is not None:

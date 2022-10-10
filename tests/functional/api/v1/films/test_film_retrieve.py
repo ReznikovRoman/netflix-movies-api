@@ -7,7 +7,7 @@ pytestmark = [pytest.mark.asyncio]
 
 
 class TestFilmRetrieve(NotFoundTestMixin, CacheTestMixin, BaseClientTest):
-    """Тестирование получения фильма по UUID."""
+    """Tests for retrieving film details by UUID."""
 
     endpoint = "/api/v1/films/{uuid}"
 
@@ -20,7 +20,7 @@ class TestFilmRetrieve(NotFoundTestMixin, CacheTestMixin, BaseClientTest):
     cache_dto_fixture_name = "film_dto"
 
     async def test_film_ok(self, film_es, film_dto):
-        """Получение фильма по UUID работает корректно."""
+        """Retrieving film by UUID works correctly."""
         got = await self.client.get(f"/api/v1/films/{film_dto.uuid}")
 
         assert got["uuid"] == str(film_dto.uuid)

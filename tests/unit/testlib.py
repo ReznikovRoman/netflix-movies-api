@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 
 
 class APIClient(AsyncClient):
-    """Httpx клиент для тестов."""
+    """Httpx test client."""
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

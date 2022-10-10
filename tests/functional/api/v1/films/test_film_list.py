@@ -14,7 +14,7 @@ class TestFilmList(
     PaginationTestMixin,
     BaseClientTest,
 ):
-    """Тестирование получения списка фильмов."""
+    """Tests for retrieving a list of movies."""
 
     endpoint = "/api/v1/films/"
 
@@ -32,7 +32,7 @@ class TestFilmList(
     cache_with_params_request = {"sort": "-imdb_rating"}
 
     async def test_film_list_ok(self, films_es, films_dto):
-        """Получение списка фильмов работает корректно."""
+        """Retrieving list of films works correctly."""
         fields_to_check = ("uuid", "title")
 
         got = await self.client.get("/api/v1/films")
@@ -44,7 +44,7 @@ class TestFilmList(
             assert actual == expected
 
     async def test_film_list_with_params(self, elastic, films_es, film_dto):
-        """Список фильмов выводится корректно и с запросом с дополнительными параметрами."""
+        """The list of films is returned correctly even with additional query parameters in the request."""
         genre = film_dto.genre[0]
 
         got = await self.client.get(f"/api/v1/films/?filter[genre]={genre.name}")
@@ -54,14 +54,14 @@ class TestFilmList(
         assert got[0]["title"] == film_dto.title
 
     async def test_films_for_subscribers(self, settings, elastic, subscription_film_es, film_es, subscriber_token):
-        """Если у авторизованного пользователя есть подписка, то ему показываются все фильмы (и с подпиской, и без)."""
+        """If an authorized user has a subscription, all films are returned (both subscription-only and 'free')."""
         headers = {"Authorization": f"Bearer {subscriber_token}"}
         got = requests.get(f"{settings.CLIENT_BASE_URL}/api/v1/films", headers=headers).json()
 
         assert len(got) == 2
 
     async def test_films_for_viewer(self, settings, elastic, subscription_film_es, film_es, viewer_token):
-        """Если у авторизованного пользователя нет подписки, то ему показываются только публичные фильмы."""
+        """If an authorized user doesn't have a subscription, only free/public films are returned."""
         headers = {"Authorization": f"Bearer {viewer_token}"}
         got = requests.get(f"{settings.CLIENT_BASE_URL}/api/v1/films", headers=headers).json()
 
@@ -83,28 +83,28 @@ class TestFilmList(
         data = {"email": "test@gmail.com", "password": "test"}
         headers = {"Authorization": f"Bearer {auth0_token}"}
 
-        # регистрируем пользователя
+        # register user
         with requests.Session() as client:
             user_response = client.post(f"{base_url}/api/v1/auth/register", data=data)
-            if user_response.status_code != 201:  # если пользователь уже есть, то просто получаем access токен
-                # авторизуемся для получения JWT токена
+            if user_response.status_code != 201:  # if user already exists, just get an access token
+                # authorizing for retrieving a JWT
                 credentials = client.post(f"{base_url}/api/v1/auth/login", data=data)
                 access_token = credentials.json()["data"]["access_token"]
                 return access_token
 
-        # получаем id пользователя
+        # get user id
         user_id = user_response.json()["data"]["id"]
 
         with requests.Session() as client:
-            # получаем id роли с подпиской
+            # get id of role with subscription
             roles_response = client.get(f"{settings.AUTH_BASE_URL}/api/v1/roles", headers=headers)
             roles = roles_response.json()["data"]
             role_id = self._find_subscription_role_id(roles)
 
-            # назначаем пользователю роль с подпиской
+            # assign given role to user
             client.post(f"{base_url}/api/v1/users/{user_id}/roles/{role_id}", headers=headers)
 
-            # авторизуемся для получения JWT токена
+            # authorizing for retrieving a JWT
             credentials = client.post(f"{base_url}/api/v1/auth/login", data=data)
             access_token = credentials.json()["data"]["access_token"]
             return access_token

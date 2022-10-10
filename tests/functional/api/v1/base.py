@@ -15,7 +15,7 @@ pytestmark = [pytest.mark.asyncio]
 
 
 class BaseClientTest:
-    """Базовый тестовый класс."""
+    """Base test class."""
 
     client: APIClient
     endpoint: str
@@ -27,7 +27,7 @@ class BaseClientTest:
 
 
 class PaginationTestMixin:
-    """Миксин для тестов на пагинацию."""
+    """Mixin for pagination tests."""
 
     pagination_factory_name: str
 
@@ -43,12 +43,12 @@ class PaginationTestMixin:
 
     @pytest.fixture
     def items(self, request, event_loop):
-        # XXX: проблема с асинхронными фикстурами в pytest-asyncio.
+        # XXX: problem with async fixtures in pytest-asyncio.
         # https://github.com/pytest-dev/pytest-asyncio/issues/112#issuecomment-746031505
         request.getfixturevalue(self.pagination_factory_name)
 
     async def test_pagination(self, items):
-        """Пагинация объектов работает корректно."""
+        """Items pagination works correctly."""
         page_size = 3
 
         first_page = await self.client.get(
@@ -61,14 +61,14 @@ class PaginationTestMixin:
 
     @pytest.mark.usefixtures("elastic")
     async def test_empty_response(self, elastic):
-        """Если объектов нет в основной БД, то должен выводиться пустой список."""
+        """If there are no items in the DB, an empty list is returned."""
         got = await self.client.get(self.endpoint, params=self.empty_request_params)
 
         assert len(got) == 0
 
 
 class CacheTestMixin:
-    """Миксин для тестов на корректную работу кэша."""
+    """Mixin for cache related tests."""
 
     cache_field_name: str
     cache_es_index_name: str
@@ -94,7 +94,7 @@ class CacheTestMixin:
 
     @pytest.mark.usefixtures("elastic")
     async def test_obj_from_cache(self, elastic, obj_dto, obj_es):
-        """Данные об объекте должны сохраняться в кэше после запроса в основную БД."""
+        """Item should be saved in cache after request to the primary database."""
         request_url = self.cache_request_url or self.endpoint
 
         new_value = "XXX"
@@ -116,9 +116,9 @@ class CacheTestMixin:
 
 
 class CacheWithParamsTestMixin:
-    """Миксин с параметрами для тестов на корректную работу кэша."""
+    """Mixin for cache related (with custom query parameters) tests."""
 
-    # из `CacheTestMixin`
+    # from `CacheTestMixin`
     cache_field_name: str
     cache_es_index_name: str
     cache_es_fixture_name: str
@@ -148,7 +148,7 @@ class CacheWithParamsTestMixin:
 
     @pytest.mark.usefixtures("elastic")
     async def test_obj_list_from_cache_with_params(self, elastic, objs_es, objs_dto):
-        """Кэширование списка объектов корректно работает и в случае параметров в запросе."""
+        """Caching list of items works correctly with query parameters in a request."""
         request_url = self.cache_request_url or self.endpoint
         expected_es = await elastic.search(
             index=self.cache_es_index_name, body=self.cache_es_query, **self.cache_es_params)
@@ -175,7 +175,7 @@ class CacheWithParamsTestMixin:
 
 
 class NotFoundTestMixin:
-    """Миксин для тестов на ненайденный объект."""
+    """Mixin for 'missing item' tests."""
 
     not_found_endpoint: str
 
@@ -185,7 +185,7 @@ class NotFoundTestMixin:
 
     @pytest.mark.usefixtures("elastic")
     async def test_not_found(self, elastic):
-        """Если запрашиваемый ресурс не найден, то возвращается ответ с корректным сообщением и 404 статусом."""
+        """If the requested item is not found, response with a correct message and 404 status is returned."""
         got = await self.client.get(self.get_not_found_endpoint(), expected_status_code=404)
 
         assert "error" in got

@@ -6,7 +6,7 @@ from movies.infrastructure.db import cache, elastic, redis, repositories, storag
 
 
 class Container(containers.DeclarativeContainer):
-    """Контейнер с зависимостями."""
+    """DI container."""
 
     wiring_config = containers.WiringConfiguration(
         modules=[
@@ -138,5 +138,5 @@ class Container(containers.DeclarativeContainer):
 
 
 def override_providers(container: Container, /) -> Container:
-    """Перезаписывание провайдеров с помощью стабов."""
+    """Override providers with stubs."""
     return container

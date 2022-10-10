@@ -9,7 +9,7 @@ if TYPE_CHECKING:
 
 
 def find_object_by_value(objects: Sequence, key: str, value: Any) -> object:
-    """Поиск объекта в списке `objects` по ключу `key` со значением `value`."""
+    """Find object in a given list by the given key and value."""
     _filter = filter(lambda obj: getattr(obj, key) == value, objects)
     return next(_filter)
 

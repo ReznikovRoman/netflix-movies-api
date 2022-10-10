@@ -13,14 +13,14 @@ settings = get_settings()
 
 
 def create_app() -> FastAPI:
-    """Фабрика по созданию приложения FastAPI."""
+    """FastAPI app factory."""  # noqa: D403
     container = Container()
     container.config.from_pydantic(settings=settings)
     container = override_providers(container)
 
     app = FastAPI(
         title="Netflix Movies API v1",
-        description="АПИ сервиса фильмов для онлайн-кинотеатра",
+        description="Netflix Movies API",
         servers=[
             {"url": server_host}
             for server_host in settings.SERVER_HOSTS

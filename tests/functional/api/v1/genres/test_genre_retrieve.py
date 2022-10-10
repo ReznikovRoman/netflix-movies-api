@@ -3,7 +3,7 @@ from .constants import GENRE_UUID
 
 
 class TestGenreRetrieve(NotFoundTestMixin, CacheTestMixin, BaseClientTest):
-    """Тестирование получения жанра по UUID."""
+    """Tests for retrieving genre details by UUID."""
 
     endpoint = "/api/v1/genres/{uuid}"
 
@@ -16,7 +16,7 @@ class TestGenreRetrieve(NotFoundTestMixin, CacheTestMixin, BaseClientTest):
     cache_dto_fixture_name = "genre_dto"
 
     async def test_genre_ok(self, client, genre_es, genre_dto):
-        """Получение жанра по UUID работает корректно."""
+        """Retrieving genre by UUID works correctly."""
         got = await self.client.get(f"/api/v1/genres/{genre_dto.uuid}")
 
         assert got["uuid"] == str(genre_dto.uuid)

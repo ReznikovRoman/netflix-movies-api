@@ -11,7 +11,7 @@ class TestPersonSearch(
     PaginationTestMixin,
     BaseClientTest,
 ):
-    """Тестирование поиска по персонам."""
+    """Tests for persons search."""
 
     endpoint = "/api/v1/persons/search/"
 
@@ -33,7 +33,7 @@ class TestPersonSearch(
     cache_with_params_request = {"query": _search_query}
 
     async def test_person_search_ok(self, elastic, persons_es):
-        """Найденные персоны выводятся в поиске корректно."""
+        """Persons search works correctly."""
         search_fields = ["full_name"]
         search_query = "Name"
         query = {"query": {"multi_match": {"query": search_query, "fields": search_fields}}}
@@ -46,7 +46,7 @@ class TestPersonSearch(
         assert got[0]["uuid"] == expected_uuid
 
     async def test_person_search_no_results(self, persons_es):
-        """Если ни одна персона не найдена по `query`, то возвращается пустой список."""
+        """If there are no persons by the given `query`, an empty list is returned."""
         got = await self.client.get("/api/v1/persons/search/?query=XXX")
 
         assert len(got) == 0

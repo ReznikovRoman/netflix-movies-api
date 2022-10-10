@@ -15,7 +15,7 @@ settings = get_settings()
     max_time=2 * 60,
 )
 async def wait_for_elasticsearch() -> None:
-    """Ожидает полноценного подключения к Elasticsearch."""
+    """Wait for Elasticsearch complete setup."""
     client = elasticsearch.AsyncElasticsearch(
         hosts=[
             {"host": settings.ES_HOST, "port": settings.ES_PORT},

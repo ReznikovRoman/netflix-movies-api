@@ -4,13 +4,13 @@ from movies.domain.schemas import BaseIdOrjsonSchema
 
 
 class PersonShortDetail(BaseIdOrjsonSchema):
-    """Персона (без информации о ролях)."""
+    """Person short detail (without roles)."""
 
     full_name: str
     films_ids: list[UUID]
 
 
 class PersonList(BaseIdOrjsonSchema):
-    """Список персон."""
+    """Person list."""
 
     full_name: str

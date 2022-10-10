@@ -10,7 +10,7 @@ from movies.common.types import Id, Query
 
 
 async def init_elastic(host: str, port: int, retry_on_timeout: bool = True) -> AsyncIterator[AsyncElasticsearch]:
-    """Инициализация клиента Elasticsearch."""
+    """Init Elasticsearch client."""
     elastic_client = AsyncElasticsearch(
         hosts=[
             {"host": host, "port": port},
@@ -24,7 +24,7 @@ async def init_elastic(host: str, port: int, retry_on_timeout: bool = True) -> A
 
 
 class ElasticClient:
-    """Клиент для работы с Elasticsearch."""
+    """Elasticsearch client."""
 
     REQUEST_TIMEOUT: ClassVar[int] = 5  # 5 seconds
 

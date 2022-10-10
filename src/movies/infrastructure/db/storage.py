@@ -12,23 +12,23 @@ if TYPE_CHECKING:
 
 
 class AsyncNoSQLStorage(ABC):
-    """Асинхронная NoSQL база данных."""
+    """Async NoSQL database."""
 
     @abstractmethod
     async def get_by_id(self, document_id: Id, /, *args, collection: str, **kwargs) -> Any:
-        """Получение записи из БД по ID `instance_id`."""
+        """Get item from DB by id."""
 
     @abstractmethod
     async def search(self, collection: str, query: Query, *args, **kwargs) -> Any:
-        """Получение записей из БД с запросом `query`."""
+        """Search items in collection by the given query."""
 
     @abstractmethod
     async def get_all(self, collection: str, *args, **kwargs) -> Any:
-        """Получение всех записей."""
+        """Get all items from collection."""
 
 
 class ElasticStorage(AsyncNoSQLStorage):
-    """БД Elasticsearch."""
+    """Elasticsearch database."""
 
     def __init__(self, client: ElasticClient) -> None:
         self.client = client

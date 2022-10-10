@@ -11,7 +11,7 @@ class TestFilmSearch(
     PaginationTestMixin,
     BaseClientTest,
 ):
-    """Тестирование поиска по фильмам."""
+    """Tests for films search."""
 
     endpoint = "/api/v1/films/search/"
 
@@ -34,20 +34,20 @@ class TestFilmSearch(
     cache_with_params_request = {"query": _search_query, "sort": "-imdb_rating"}
 
     async def test_film_search_ok(self, films_es, film_dto):
-        """Поиск по фильмам работает корректно."""
+        """Films search works correctly."""
         got = await self.client.get(f"/api/v1/films/search/?query={film_dto.title}")
 
         assert len(got) > 0
         assert got[0]["uuid"] == str(film_dto.uuid)
 
     async def test_film_search_no_results(self, films_es):
-        """Если ни один фильм не найден по `query`, то возвращается пустой список."""
+        """If there are no films for the given `query`, an empty list is returned."""
         got = await self.client.get("/api/v1/films/search/?query=XXX")
 
         assert len(got) == 0
 
     async def test_film_search_with_params(self, elastic, films_es):
-        """Найденные фильмы выводятся в поиске корректно и с запросом с дополнительными параметрами."""
+        """Films search works correctly even with query parameters in a request."""
         sort_field = "imdb_rating"
         search_fields = ["title", "description", "genres_names", "actors_names", "directors_names", "writers_names"]
         search_query = "Title"

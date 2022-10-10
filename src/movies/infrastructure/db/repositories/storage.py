@@ -13,34 +13,34 @@ if TYPE_CHECKING:
 
 
 class NoSQLStorageRepository(ABC):
-    """Базовый репозиторий для работы с данными из NoSQL хранилища."""
+    """Base repository for working with data from NOSQL storage."""
 
     schema_cls: ApiSchemaClass
 
     @abstractmethod
     async def get_by_id(self, doc_id: str, schema_cls: ApiSchemaClass) -> ApiSchema:
-        """Получение документа по `doc_id`."""
+        """Get document by id."""
 
     @abstractmethod
     async def get_list(self, schema_cls: ApiSchemaClass, **search_options) -> list[ApiSchema]:
-        """Получение списка документов."""
+        """Get list of documents."""
 
     @abstractmethod
     async def search(self, query: dict, schema_cls: ApiSchemaClass, **search_options) -> list[ApiSchema]:
-        """Поиск документов в хранилище."""
+        """Search documents in a collection."""
 
     @abstractmethod
     def prepare_search_request(self, *args, **options) -> dict:
-        """Подготовка поискового запроса к БД."""
+        """Prepare search request for the DB."""
 
     @staticmethod
     @abstractmethod
     def calc_offset(page_size: int, page_number: int) -> int:
-        """Подсчет offset'а для запроса в БД на основе номера страницы `page_number`."""
+        """Calculate offset for the DB query based on `page_size` and `page_number`."""
 
 
 class ElasticRepository(NoSQLStorageRepository):
-    """Репозиторий для работы с данными из Elasticsearch."""
+    """Repository for working with data from Elasticsearch."""
 
     def __init__(self, storage: AsyncNoSQLStorage, index_name: str) -> None:
         self.storage = storage
@@ -91,7 +91,7 @@ class ElasticRepository(NoSQLStorageRepository):
 
 
 class ElasticCacheRepository(NoSQLStorageRepository):
-    """Репозиторий для работы с данными из Elasticsearch и кэша."""
+    """Repository for working with data from Elasticsearch and cache."""
 
     def __init__(
         self,
@@ -104,7 +104,6 @@ class ElasticCacheRepository(NoSQLStorageRepository):
         self.key_factory = key_factory
 
     async def get_by_id(self, doc_id: str, /, *, schema_cls: ApiSchemaClass) -> ApiSchema:
-        """Получения документа по `doc_id`."""
         key = self.key_factory(doc_id=doc_id, schema_cls=schema_cls)
         item = await self.cache_repository.get_item(key, schema_cls)
         if item is not None:

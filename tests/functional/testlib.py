@@ -28,7 +28,7 @@ elastic_schemas = {
 
 
 class APIClient(ClientSession):
-    """Aiohttp клиент для тестов."""
+    """Aiohttp test client."""
 
     def __init__(self, base_url: str = "http://localhost:8001", *args, **kwargs):
         self.base_url = base_url

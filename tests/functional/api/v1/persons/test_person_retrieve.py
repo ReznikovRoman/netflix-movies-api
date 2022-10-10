@@ -3,7 +3,7 @@ from .constants import PERSON_UUID
 
 
 class TestPersonRetrieve(NotFoundTestMixin, CacheTestMixin, BaseClientTest):
-    """Тестирование получения персоны по UUID."""
+    """Tests for retrieving person by UUID."""
 
     endpoint = "/api/v1/persons/{uuid}"
 
@@ -16,7 +16,7 @@ class TestPersonRetrieve(NotFoundTestMixin, CacheTestMixin, BaseClientTest):
     cache_dto_fixture_name = "person_dto"
 
     async def test_person_ok(self, client, person_es, person_dto):
-        """Получение персоны по UUID работает корректно."""
+        """Retrieving person by UUID works correctly."""
         got = await self.client.get(f"/api/v1/persons/{person_dto.uuid}")
 
         assert got["uuid"] == str(person_dto.uuid)

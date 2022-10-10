@@ -15,7 +15,7 @@ class EnvConfig(BaseSettings.Config):
 
 
 class Settings(BaseSettings):
-    """Настройки проекта."""
+    """Project settings."""
 
     # Project
     API_V1_STR: str = "/api/v1"

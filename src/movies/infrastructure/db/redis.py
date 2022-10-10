@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 
 
 async def init_redis_sentinel(sentinels: list[str], socket_timeout: float) -> AsyncIterator[aioredis.sentinel.Sentinel]:
-    """Инициализация клиента Redis Sentinel."""
+    """Init Redis Sentinel client."""
     sentinel_client = aioredis.sentinel.Sentinel(
         sentinels=[(sentinel, 26379) for sentinel in sentinels],
         socket_timeout=socket_timeout,
@@ -21,7 +21,7 @@ async def init_redis_sentinel(sentinels: list[str], socket_timeout: float) -> As
 
 
 class RedisClient:
-    """Асинхронный клиент для работы с Redis."""
+    """Async Redis client."""
 
     def __init__(
         self, sentinel_client: aioredis.sentinel.Sentinel, service_name: str, connection_options: dict[str, Any],
@@ -48,10 +48,10 @@ class RedisClient:
         return await client.set(key, data)
 
     async def pre_init_client(self, *args, **kwargs):
-        """Вызывается до начала инициализации клиента Redis."""
+        """Pre-init signal. Called before initializing Redis client."""
 
     async def post_init_client(self, client: aioredis.Redis, /, *args, **kwargs) -> None:
-        """Вызывается после инициализации клиента Redis."""
+        """Post-init signal. called after initializing Redis client."""
 
     async def _get_client(self, *, write: bool = False) -> aioredis.Redis:
         if write:
@@ -59,8 +59,8 @@ class RedisClient:
 
         try:
             slave: aioredis.Redis = await self.sentinel_client.slave_for(self.service_name, **self.connection_options)
-            # XXX: в методе .slave_for() не проверяется состояние слейва (как это происходит в .discover_slaves())
-            # поэтому нам приходится вручную каждый раз пинговать слейва и ловить ошибку `SlaveNotFoundError`
+            # XXX: Redis doesn't check slave's health in the .slave_for() method (like in .discover_slaves())
+            # therefore, we have to manually ping slave every time and catch `SlaveNotFoundError` exception
             await self._check_slave_health(slave)
             return slave
         except (aioredis.sentinel.SlaveNotFoundError, aioredis.exceptions.TimeoutError):
