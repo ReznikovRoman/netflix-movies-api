@@ -1,6 +1,10 @@
 # Netflix Movies API
 _Netflix_ movies API.
 
+## Stack
+[FastAPI](https://fastapi.tiangolo.com/), [Elasticsearch](https://www.elastic.co/what-is/elasticsearch),
+[Redis](https://redis.io/), [Traefik](https://doc.traefik.io/traefik/)
+
 ## Services
 - Netflix Admin:
   - Online-cinema management panel. Admins can manage films, genres, actors/directors/writers/...
