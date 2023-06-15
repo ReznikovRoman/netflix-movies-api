@@ -71,5 +71,4 @@ async def get_film(
     film_repository: FilmRepository = Depends(Provide[Container.film_repository]),
 ):
     """Get film detail by id."""
-    raise Exception()
     return await film_repository.get_by_id(uuid)
