@@ -12,7 +12,7 @@ from .containers import Container, override_providers
 settings = get_settings()
 
 
-def create_app() -> FastAPI:  # 123
+def create_app() -> FastAPI:
     """FastAPI app factory."""  # noqa: D403
     container = Container()
     container.config.from_pydantic(settings=settings)
